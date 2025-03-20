@@ -148,6 +148,7 @@ export default function ResidenceForm() {
               onValueChange={(itemValue) => setTypology(itemValue)}
               style={styles.picker}
             >
+              <Picker.Item label="Escolhe o tipo de Resiência" value="" />
               <Picker.Item label="Apartamento" value="Apartamento" />
               <Picker.Item label="Vivenda" value="Vivenda" />
               <Picker.Item label="Moradia" value="Moradia" />
