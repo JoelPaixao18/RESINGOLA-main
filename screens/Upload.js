@@ -1,30 +1,27 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Image,
-  StyleSheet,
-  ScrollView,
-  Switch,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, Switch, ActivityIndicator, FlatList } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
-import * as Location from 'expo-location'; // Importando a API de localização
+import * as Location from 'expo-location';
 import { MaterialIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
+import styles from '../styles/Upload';
 
-export default function ResidenceForm() {
-  const [image, setImage] = useState(null);
+export default function Upload() {
+  const [images, setImages] = useState([]);
   const [houseSize, setHouseSize] = useState('');
   const [compartments, setCompartments] = useState('');
   const [typology, setTypology] = useState('Apartamento');
   const [hasWater, setHasWater] = useState(false);
   const [hasElectricity, setHasElectricity] = useState(false);
-  const [location, setLocation] = useState(null); // Estado para armazenar o nome do local
-  const [isLoadingLocation, setIsLoadingLocation] = useState(false); // Estado para indicar carregamento
+  const [location, setLocation] = useState(null);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [price, setPrice] = useState('');
+  const navigation = useNavigation();
+
+  // Verifica se todos os campos obrigatórios estão preenchidos
+  const isFormValid = images.length > 0 && houseSize && !isNaN(houseSize) && compartments && location && price && !isNaN(price);
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -38,10 +35,12 @@ export default function ResidenceForm() {
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
+      allowsMultipleSelection: true, // Permite seleção múltipla
     });
 
-    if (!result.cancelled) {
-      setImage(result.uri);
+    if (!result.cancelled && result.assets) {
+      const newImages = result.assets.map(asset => asset.uri);
+      setImages([...images, ...newImages]);
     }
   };
 
@@ -58,73 +57,131 @@ export default function ResidenceForm() {
       quality: 1,
     });
 
-    if (!result.cancelled) {
-      setImage(result.uri);
+    if (!result.cancelled && result.assets) {
+      setImages([...images, result.assets[0].uri]);
     }
+  };
+
+  const removeImage = (index) => {
+    const newImages = [...images];
+    newImages.splice(index, 1);
+    setImages(newImages);
   };
 
   const getLocation = async () => {
-    setIsLoadingLocation(true); // Inicia o carregamento
+    setIsLoadingLocation(true);
 
-    // Solicita permissão para acessar a localização
     let { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
       alert('Desculpe, precisamos da permissão para acessar a localização!');
-      setIsLoadingLocation(false); // Para o carregamento
+      setIsLoadingLocation(false);
       return;
     }
 
-    // Obtém as coordenadas atuais
-    let { coords } = await Location.getCurrentPositionAsync({});
+    try {
+      let { coords } = await Location.getCurrentPositionAsync({});
+      let address = await Location.reverseGeocodeAsync(coords);
 
-    // Converte as coordenadas em um endereço legível (geocodificação reversa)
-    let address = await Location.reverseGeocodeAsync(coords);
-
-    if (address.length > 0) {
-      const { city, district } = address[0]; // Extrai cidade e bairro
-      setLocation(`${city}, ${district}`); // Armazena o nome do local
-    } else {
-      alert('Não foi possível obter o endereço.');
+      if (address.length > 0) {
+        const { city, district } = address[0];
+        setLocation(`${city}, ${district}`);
+      } else {
+        alert('Não foi possível obter o endereço.');
+      }
+    } catch (error) {
+      console.error('Erro ao obter localização:', error);
+      alert('Erro ao obter localização');
     }
 
-    setIsLoadingLocation(false); // Para o carregamento
+    setIsLoadingLocation(false);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (!isFormValid) {
+      alert('Por favor, preencha todos os campos corretamente antes de cadastrar.');
+      return;
+    }
+
     const residenceData = {
-      image,
-      houseSize,
+      id: Math.random().toString(36).substr(2, 9),
+      images, // Agora é um array de imagens
+      houseSize: parseFloat(houseSize),
       compartments,
       typology,
       resources: {
         water: hasWater,
         electricity: hasElectricity,
       },
-      location, // Inclui o nome do local nos dados
-      price,
+      location,
+      price: parseFloat(price),
+      createdAt: new Date().toISOString()
     };
-    console.log('Dados da residência:', residenceData);
-    alert('Residência cadastrada com sucesso!');
+
+    try {
+      const savedResidencesData = await AsyncStorage.getItem('savedResidences');
+      const savedResidences = savedResidencesData ? JSON.parse(savedResidencesData) : [];
+
+      savedResidences.push(residenceData);
+      await AsyncStorage.setItem('savedResidences', JSON.stringify(savedResidences));
+
+      alert('Residência cadastrada com sucesso!');
+      
+      // Limpar o formulário após o cadastro
+      setImages([]);
+      setHouseSize('');
+      setCompartments('');
+      setTypology('Apartamento');
+      setHasWater(false);
+      setHasElectricity(false);
+      setLocation(null);
+      setPrice('');
+
+      navigation.navigate('Home');
+    } catch (error) {
+      console.error('Erro ao salvar residência', error);
+      alert('Erro ao cadastrar residência');
+    }
   };
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
-        {/* Cover para adicionar imagem */}
-        <TouchableOpacity style={styles.cover} onPress={takePhoto}>
-          {image ? (
-            <Image source={{ uri: image }} style={styles.image} />
-          ) : (
+        {/* Área para adicionar imagens */}
+        
+        {images.length > 0 ? (
+          <FlatList
+            horizontal
+            data={images}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={({ item, index }) => (
+              <View style={styles.imageContainer}>
+                <Image source={{ uri: item }} style={styles.image} />
+                <TouchableOpacity 
+                  style={styles.removeImageButton} 
+                  onPress={() => removeImage(index)}
+                >
+                  <MaterialIcons name="close" size={20} color="white" />
+                </TouchableOpacity>
+              </View>
+            )}
+            contentContainerStyle={styles.imagesList}
+          />
+        ) : (
+          <TouchableOpacity style={styles.cover} onPress={pickImage}>
             <View style={styles.coverContent}>
               <MaterialIcons name="add-a-photo" size={40} color="#666" />
-              <Text style={styles.coverText}>Adicione uma imagem</Text>
+              <Text style={styles.coverText}>Adicione imagens</Text>
             </View>
-          )}
-        </TouchableOpacity>
+          </TouchableOpacity>
+        )}
 
-        {/* Formulário */}
+        <Text style={styles.photoOptionText} onPress={takePhoto}>
+          Ou tire uma foto
+        </Text>
+
+        {/* Restante do formulário */}
         <View style={styles.form}>
-          <Text style={styles.label}>Tamanho da casa (m²)</Text>
+          <Text style={styles.label}>Tamanho da casa (m²)*</Text>
           <TextInput
             style={styles.input}
             placeholder="Ex: 120"
@@ -133,7 +190,7 @@ export default function ResidenceForm() {
             onChangeText={setHouseSize}
           />
 
-          <Text style={styles.label}>Número de compartimentos</Text>
+          <Text style={styles.label}>Número de compartimentos*</Text>
           <TextInput
             style={styles.input}
             placeholder="Ex: 4 (2 quartos, 1 sala, 1 cozinha)"
@@ -141,14 +198,13 @@ export default function ResidenceForm() {
             onChangeText={setCompartments}
           />
 
-          <Text style={styles.label}>Tipologia da casa</Text>
+          <Text style={styles.label}>Tipologia da casa*</Text>
           <View style={styles.pickerContainer}>
             <Picker
               selectedValue={typology}
               onValueChange={(itemValue) => setTypology(itemValue)}
               style={styles.picker}
             >
-              <Picker.Item label="Escolhe o tipo de Resiência" value="" />
               <Picker.Item label="Apartamento" value="Apartamento" />
               <Picker.Item label="Vivenda" value="Vivenda" />
               <Picker.Item label="Moradia" value="Moradia" />
@@ -174,10 +230,10 @@ export default function ResidenceForm() {
             />
           </View>
 
-          <Text style={styles.label}>Localização</Text>
+          <Text style={styles.label}>Localização*</Text>
           <TouchableOpacity style={styles.locationButton} onPress={getLocation}>
             {isLoadingLocation ? (
-              <ActivityIndicator color="#6200ee" /> // Mostra um spinner durante o carregamento
+              <ActivityIndicator color="#6200ee" />
             ) : (
               <Text style={styles.locationButtonText}>
                 {location || 'Obter Localização'}
@@ -185,7 +241,7 @@ export default function ResidenceForm() {
             )}
           </TouchableOpacity>
 
-          <Text style={styles.label}>Preço (€)</Text>
+          <Text style={styles.label}>Preço (kz)*</Text>
           <TextInput
             style={styles.input}
             placeholder="Ex: 150000"
@@ -194,8 +250,14 @@ export default function ResidenceForm() {
             onChangeText={setPrice}
           />
 
+          <Text style={styles.requiredFieldsText}>* Campos obrigatórios</Text>
+
           {/* Botão de envio */}
-          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+          <TouchableOpacity 
+            style={[styles.submitButton, !isFormValid && styles.disabledButton]} 
+            onPress={handleSubmit}
+            disabled={!isFormValid}
+          >
             <Text style={styles.submitButtonText}>Cadastrar Residência</Text>
           </TouchableOpacity>
         </View>
@@ -203,93 +265,3 @@ export default function ResidenceForm() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  scrollContainer: {
-    flexGrow: 1,
-    paddingVertical: 30,
-  },
-  container: {
-    paddingHorizontal: 20,
-  },
-  cover: {
-    width: '100%',
-    height: 200,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-    overflow: 'hidden',
-  },
-  coverContent: {
-    alignItems: 'center',
-  },
-  coverText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: '#666',
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-  },
-  form: {
-    width: '100%',
-  },
-  label: {
-    fontSize: 16,
-    marginBottom: 8,
-    color: '#333',
-  },
-  input: {
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 5,
-    paddingHorizontal: 10,
-    marginBottom: 12,
-  },
-  pickerContainer: {
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 5,
-    marginBottom: 12,
-    overflow: 'hidden',
-  },
-  picker: {
-    height: 70,
-  },
-  switchContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  locationButton: {
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 5,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-    backgroundColor: '#f0f0f0',
-  },
-  locationButtonText: {
-    color: '#333',
-  },
-  submitButton: {
-    backgroundColor: '#6200ee',
-    padding: 15,
-    borderRadius: 5,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  submitButtonText: {
-    color: '#fff',
-    fontSize: 16,
-  },
-});

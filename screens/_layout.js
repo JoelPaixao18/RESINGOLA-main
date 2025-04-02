@@ -40,6 +40,8 @@ export default function _TabsLayout() {
 
         tabBarActiveTintColor: 'white', // Cor dos ícones ativos
         tabBarInactiveTintColor: 'white', // Cor dos ícones inativos
+
+        
       })
     }
     >

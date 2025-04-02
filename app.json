@@ -4,27 +4,20 @@
     "slug": "first-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/splash.png",
-    "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "resizeMode": "cover",
+      "backgroundColor": "#1A7526"
     },
-    "newArchEnabled": true,
+    "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true,
-      "infoPlist": {
-       "NSCameraUsageDescription": "Precisamos acessar sua câmera para tirar fotos.",
-       "NSPhotoLibraryUsageDescription": "Precisamos acessar sua galeria para selecionar fotos."
-      }
+      "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      },
-      "permissions": ["CAMERA", "READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE"]
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"

@@ -1,98 +1,113 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
 
-const styles = StyleSheet.create({
-  container: { 
-    paddingHorizontal: 20, 
-    flex: 1, 
-    backgroundColor: '#f5f5f5' 
+const screenWidth = Dimensions.get('window').width;
+
+export default StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
   },
   header: {
-    marginTop: 80,
-    flexDirection: "row",
-    justifyContent: "space-between",
+    marginTop: 40,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 15,
   },
   headerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
+    width: 50,
   },
   headerRight: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
+    width: 50,
   },
   inputContainer: {
-    width: "100%",
-    height: 56,
-    backgroundColor: "white",
-    borderStyle: "solid",
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f2f2f2',
     borderRadius: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    gap: 10,
-    marginBottom: 20,
+    paddingHorizontal: 15,
+    marginHorizontal: 15,
+    marginBottom: 30,
   },
   input: {
     flex: 1,
+    height: 50,
+    paddingLeft: 10,
+    fontSize: 16,
   },
-  content:{
-    width: "100%",
-    gap: 20,
+  typeHouseContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 15,
+    marginBottom: 30,
   },
-  cardContainer: {
-    flexGrow: 1,
-    padding: 10,
+  typeHouseButton: {
+    backgroundColor: '#f2f2f2',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+  },
+  typeHouseText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  content: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContentContainer: {
+    paddingBottom: 20,
   },
   gridContainer: {
-    flexDirection: 'row', // Cards na horizontal
-    flexWrap: 'wrap', // Permite que os cards se ajustem para a linha seguinte
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
-    padding: 5,
+    paddingHorizontal: 10,
   },
-  card: (screenWidth) => ({
+  card: {
     width: screenWidth / 2 - 20,
-    borderRadius: 15,
-    paddingHorizontal: 10,
-    justifyContent: "space-between",
-    gap: 5,
-    backgroundColor: "grey",
-    margin: 10,
-    width: 130,
-    borderWidth: 1,
-    borderRadius: 8,
-    overflow: 'hidden',
-    alignItems: 'center',
-  }),
-  cardButton:{
-    flexDirection: "columns",
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  cardImage:{
-    width: 155,
-    borderRadius: 15,
+  cardButton: {
+    width: '100%',
   },
-  cardInfo:{
-    paddingHorizontal: 10,
-    gap: 10,
+  cardImage: {
+    width: '100%',
+    height: 150,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
   },
-  cardInfoTitle:{
+  cardInfo: {
+    padding: 10,
+  },
+  cardInfoTitle: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: 'bold',
+    marginBottom: 5,
   },
-  cardInfoSubTitle:{
+  cardInfoSubTitle: {
     fontSize: 14,
-    fontWeight: "400",
+    color: '#666',
   },
-  cardInfoBuy:{
-    alignItems: "flex-start",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 10,
+  cardInfoBuy: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#f2f2f2',
   },
-  cardInfoText:{
-    fontSize: 18,
-    fontWeight: 900,
-  }
+  cardInfoText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
 });
-
-  export default styles

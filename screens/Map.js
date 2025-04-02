@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Text } from 'react-native';
+import { View, TextInput, Text } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location'; // Importando expo-location
+import styles from '../styles/Map';
+import { MagnifyingGlass } from 'phosphor-react-native';
 
 function Map() {
   const [location, setLocation] = useState(null);
@@ -61,6 +63,9 @@ function Map() {
 
   return (
     <View style={styles.container}>
+
+      
+
       <MapView
         style={styles.map}
         initialRegion={{
@@ -94,6 +99,15 @@ function Map() {
         ))}
       </MapView>
 
+      <View style={styles.inputContainer}>
+        <MagnifyingGlass size={30} weight="thin" />
+          <TextInput
+                  style={styles.input}
+                  placeholder="Pesquise sua casa"
+                  placeholderTextColor={"#606060"}
+          />
+      </View>
+
       {/* Exibindo o endereço na tela */}
       {address ? (
         <View style={styles.addressContainer}>
@@ -107,37 +121,3 @@ function Map() {
 }
 
 export default Map;
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-  },
-  map: {
-    width: '100%',
-    height: '100%',
-  },
-  addressContainer: {
-    position: 'absolute',  // Certifica que ficará sobre o mapa
-    bottom: 10,            // Coloca na parte inferior da tela
-    width: '100%',         // Ocupa a largura inteira
-    padding: 15,           // Padding para o texto não ficar grudado
-    backgroundColor: 'rgba(255, 255, 255, 0.8)', // Fundo transparente
-    borderRadius: 5,      // Bordas arredondadas
-    alignItems: 'center', // Centraliza o texto
-  },
-  addressText: {
-    fontSize: 16,        // Tamanho da fonte
-    fontWeight: 'bold',  // Deixa o texto mais visível
-  },
-  waitMapText:{
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
-    justifyContent: 'center',
-    marginVertical: 50,
-    paddingVertical: 50,
-  },
-});
