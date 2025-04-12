@@ -1,19 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { View, TextInput, Text } from 'react-native';
+import { SafeAreaView, View, TextInput, Text, Dimensions } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
-import * as Location from 'expo-location'; // Importando expo-location
+import * as Location from 'expo-location';
 import styles from '../styles/Map';
 import { MagnifyingGlass } from 'phosphor-react-native';
 
 function Map() {
   const [location, setLocation] = useState(null);
-  const [address, setAddress] = useState(null); // Estado para armazenar o endereço
+  const [address, setAddress] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
 
   useEffect(() => {
-    // Função para pegar a localização e o endereço
     const getLocation = async () => {
-      // Verifica as permissões de localização
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         setErrorMsg('Permissão de localização negada!');
@@ -21,18 +19,16 @@ function Map() {
       }
 
       try {
-        // Pega a localização atual
         let currentLocation = await Location.getCurrentPositionAsync({});
-        setLocation(currentLocation.coords); // Atualiza o estado da localização
+        setLocation(currentLocation.coords);
 
-        // Usando geocodificação reversa para obter o endereço
         const geocode = await Location.reverseGeocodeAsync({
           latitude: currentLocation.coords.latitude,
           longitude: currentLocation.coords.longitude,
         });
 
         if (geocode.length > 0) {
-          const locationAddress = geocode[0]; // Obter o primeiro resultado
+          const locationAddress = geocode[0];
           setAddress(`${locationAddress.name}, ${locationAddress.city}, ${locationAddress.region}`);
         } else {
           setAddress('Endereço não encontrado');
@@ -54,7 +50,6 @@ function Map() {
     return <Text style={styles.waitMapText}>Carregando localização...</Text>;
   }
 
-  // Marcadores adicionais no mapa
   const locations = [
     { id: 1, latitude: 51.505, longitude: -0.09, title: 'Local 1', description: 'Descrição do Local 1' },
     { id: 2, latitude: 51.515, longitude: -0.1, title: 'Local 2', description: 'Descrição do Local 2' },
@@ -62,10 +57,7 @@ function Map() {
   ];
 
   return (
-    <View style={styles.container}>
-
-      
-
+    <SafeAreaView style={styles.container}>
       <MapView
         style={styles.map}
         initialRegion={{
@@ -76,7 +68,6 @@ function Map() {
         }}
         tileUrlTemplate="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       >
-        {/* Marcador para a localização atual */}
         <Marker
           coordinate={{
             latitude: location.latitude,
@@ -85,7 +76,6 @@ function Map() {
           title="Minha Localização"
         />
 
-        {/* Marcadores adicionais no mapa */}
         {locations.map((locationItem) => (
           <Marker
             key={locationItem.id}
@@ -101,14 +91,13 @@ function Map() {
 
       <View style={styles.inputContainer}>
         <MagnifyingGlass size={30} weight="thin" />
-          <TextInput
-                  style={styles.input}
-                  placeholder="Pesquise sua casa"
-                  placeholderTextColor={"#606060"}
-          />
+        <TextInput
+          style={styles.input}
+          placeholder="Pesquise sua casa"
+          placeholderTextColor="#606060"
+        />
       </View>
 
-      {/* Exibindo o endereço na tela */}
       {address ? (
         <View style={styles.addressContainer}>
           <Text style={styles.addressText}>Localização: {address}</Text>
@@ -116,7 +105,7 @@ function Map() {
       ) : (
         <Text>Obtendo endereço...</Text>
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 

@@ -173,4 +173,3 @@ try {
 }
 
 echo json_encode($response); // <--- ADICIONE ISSO
-
