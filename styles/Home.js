@@ -1,5 +1,6 @@
 import { StyleSheet, Dimensions } from 'react-native';
 
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const screenWidth = Dimensions.get('window').width;
 
 export default StyleSheet.create({
@@ -8,46 +9,46 @@ export default StyleSheet.create({
     backgroundColor: '#fff',
   },
   header: {
-    marginTop: 40,
+    marginTop: SCREEN_HEIGHT * 0.02,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 15,
+    padding: SCREEN_WIDTH * 0.04,
   },
   headerLeft: {
-    width: 50,
+    width: SCREEN_WIDTH * 0.13,
   },
   headerRight: {
-    width: 50,
+    width: SCREEN_WIDTH * 0.13,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#f2f2f2',
     borderRadius: 20,
-    paddingHorizontal: 15,
-    marginHorizontal: 15,
-    marginBottom: 30,
+    paddingHorizontal: SCREEN_WIDTH * 0.04,
+    marginHorizontal: SCREEN_WIDTH * 0.04,
+    marginBottom: SCREEN_HEIGHT * 0.03,
   },
   input: {
     flex: 1,
-    height: 50,
-    paddingLeft: 10,
-    fontSize: 16,
+    height: SCREEN_HEIGHT * 0.06,
+    paddingLeft: SCREEN_WIDTH * 0.025,
+    fontSize: SCREEN_WIDTH * 0.04,
   },
   typeHouseContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 15,
-    marginBottom: 30,
+    paddingHorizontal: SCREEN_WIDTH * 0.04,
+    marginBottom: SCREEN_HEIGHT * 0.03,
   },
   typeHouseButton: {
     backgroundColor: '#f2f2f2',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingVertical: SCREEN_HEIGHT * 0.015,
+    paddingHorizontal: SCREEN_WIDTH * 0.1,
     borderRadius: 20,
   },
   typeHouseText: {
-    fontSize: 14,
+    fontSize: SCREEN_WIDTH * 0.035,
     color: '#333',
   },
   content: {
@@ -57,19 +58,19 @@ export default StyleSheet.create({
     flex: 1,
   },
   scrollContentContainer: {
-    paddingBottom: 20,
+    paddingBottom: SCREEN_HEIGHT * 0.025,
   },
   gridContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    paddingHorizontal: 10,
+    paddingHorizontal: SCREEN_WIDTH * 0.025,
   },
   card: {
-    width: screenWidth / 2 - 20,
+    width: SCREEN_WIDTH / 2 - SCREEN_WIDTH * 0.05,
     backgroundColor: '#fff',
     borderRadius: 10,
-    marginBottom: 20,
+    marginBottom: SCREEN_HEIGHT * 0.025,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -81,33 +82,66 @@ export default StyleSheet.create({
   },
   cardImage: {
     width: '100%',
-    height: 150,
+    height: SCREEN_HEIGHT * 0.2,
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
   },
   cardInfo: {
-    padding: 10,
+    padding: SCREEN_WIDTH * 0.025,
   },
   cardInfoTitle: {
-    fontSize: 16,
+    fontSize: SCREEN_WIDTH * 0.04,
     fontWeight: 'bold',
-    marginBottom: 5,
+    marginBottom: SCREEN_HEIGHT * 0.005,
   },
   cardInfoSubTitle: {
-    fontSize: 14,
+    fontSize: SCREEN_WIDTH * 0.035,
     color: '#666',
   },
   cardInfoBuy: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 10,
+    flexDirection: 'column', // <-- muda de 'row' para 'column'
+    alignItems: 'flex-start', // alinha à esquerda (opcional)
+    padding: SCREEN_WIDTH * 0.025,
     borderTopWidth: 1,
     borderTopColor: '#f2f2f2',
-  },
+    gap: 8, // adiciona espaço entre preço e botões (pode ajustar)
+  },  
   cardInfoText: {
-    fontSize: 16,
+    fontSize: SCREEN_WIDTH * 0.04,
     fontWeight: 'bold',
     color: '#333',
   },
+
+  // Adiciona estilos responsivos ao final do arquivo:
+input: {
+  flex: 1,
+  height: SCREEN_HEIGHT * 0.06,
+  paddingLeft: SCREEN_WIDTH * 0.025,
+  fontSize: SCREEN_WIDTH * 0.04,
+},
+typeHouseButton: {
+  backgroundColor: '#f2f2f2',
+  paddingVertical: SCREEN_HEIGHT * 0.015,
+  paddingHorizontal: SCREEN_WIDTH * 0.1,
+  borderRadius: 20,
+},
+typeHouseText: {
+  fontSize: SCREEN_WIDTH * 0.035,
+  color: '#333',
+},
+cardInfoTitle: {
+  fontSize: SCREEN_WIDTH * 0.04,
+  fontWeight: 'bold',
+  marginBottom: 5,
+},
+cardInfoSubTitle: {
+  fontSize: SCREEN_WIDTH * 0.035,
+  color: '#666',
+},
+cardInfoText: {
+  fontSize: SCREEN_WIDTH * 0.04,
+  fontWeight: 'bold',
+  color: '#333',
+},
+
 });

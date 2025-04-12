@@ -6,7 +6,7 @@ const save = StyleSheet.create({
     paddingHorizontal: 20, 
     flex: 1, 
     backgroundColor: '#f5f5f5',
-    marginTop: 80 
+    marginTop: 50, 
   },
 });
 

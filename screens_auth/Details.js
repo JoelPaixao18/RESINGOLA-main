@@ -12,17 +12,23 @@ function Details() {
 
   // Função para gerar o texto descritivo da residência
   const generateDescription = (residence) => {
+    const resources = [];
+    if (residence.hasWater) resources.push('Água');
+    if (residence.hasElectricity) resources.push('Energia Elétrica');
+    
     return (
       <View style={styles.descriptionView}>
         <Text style={styles.description}>Descrição</Text>
-
         <Text style={styles.descriptionText}>
-          Esta residência é um/a {residence.typology.toLowerCase()} localizado em {residence.location}. 
-          Possui {residence.houseSize} m² de área construída, com os seguintes compartimentos: {residence.compartments}. 
-          Está disponível por {residence.price} €.
-          Recursos disponíveis: {residence.resources.water ? 'Água' : 'Sem água'}, {residence.resources.electricity ? 'Energia elétrica' : 'Sem energia elétrica'}.
+          Esta residência é um/a {residence.typeResi.toLowerCase()} {residence.typology ? `(${residence.typology})` : ''} localizado em {residence.location}. 
+          Possui {residence.houseSize} de área construída, com:
+          {"\n\n"}- {residence.roomCount} quarto(s)
+          {"\n"}- {residence.livingRoomCount} sala(s)
+          {"\n"}- {residence.kitchenCount} cozinha(s)
+          {"\n\n"}Recursos disponíveis: {resources.length > 0 ? resources.join(', ') : 'Nenhum recurso disponível'}.
         </Text>
-      </View>);
+      </View>
+    );
   };
 
     // Salvar um card (opcional)
@@ -72,7 +78,7 @@ function Details() {
         <View style={styles.contentAddress}>
           <MapPin size={36} color='#1A7526' weight='fill' />
           <Text style={styles.contentAddressText}>{residence.location}</Text>
-          <Text style={styles.contentAddressPrice}>{residence.price} €</Text>
+          <Text style={styles.contentAddressPrice}>{residence.price}</Text>
         </View>
 
         <View style={styles.separator} />

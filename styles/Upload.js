@@ -109,7 +109,7 @@ export default StyleSheet.create({
     marginBottom: 20,
     fontStyle: 'italic',
   },
-  submitButton: {
+  /*submitButton: {
     backgroundColor: '#6200ee',
     padding: 15,
     borderRadius: 5,
@@ -121,6 +121,35 @@ export default StyleSheet.create({
   },
   submitButtonText: {
     color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  checkboxGroup: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+  checkboxLabel: {
+    marginLeft: 8,
+    fontSize: 16,
+  },*/
+  submitButton: {
+    backgroundColor: '#1A7526',
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  disabledButton: {
+    backgroundColor: '#cccccc',
+  },
+  submitButtonText: {
+    color: 'white',
     fontWeight: 'bold',
     fontSize: 16,
   },
