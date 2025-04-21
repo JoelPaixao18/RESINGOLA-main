@@ -15,8 +15,8 @@ const styles = StyleSheet.create({
     width: SCREEN_WIDTH * 0.88,
     height: SCREEN_HEIGHT * 0.27,
     position: 'absolute',
-    marginHorizontal: SCREEN_WIDTH * 0.1,
-    top: SCREEN_HEIGHT * 0.14,
+    marginHorizontal: 25,
+    top: SCREEN_HEIGHT * 0.13,
     borderRadius: SCREEN_WIDTH * 0.03,
   },
   headerInfoButtons: {

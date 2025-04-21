@@ -11,9 +11,9 @@ import styles from '../styles/Upload';
 export default function Upload() {
   const [images, setImages] = useState([]);
   const [houseSize, setHouseSize] = useState('');
+  const [status, setStatus] = useState('');
   const [typeResi, setTypeResi] = useState('Apartamento'); // Renomeado de typology para typeResi
   const [typology, setTypology] = useState(''); // Agora será usado apenas para T2, T3, T4
-  const [roomCount, setRoomCount] = useState('');
   const [livingRoomCount, setLivingRoomCount] = useState('');
   const [kitchenCount, setKitchenCount] = useState('');
   const [hasWater, setHasWater] = useState(false);
@@ -34,6 +34,11 @@ export default function Upload() {
       Alert.alert("Erro", "Tamanho da casa inválido (deve ser um número positivo)");
       return false;
     }
+
+    if (!status || status.trim() === "") {
+      Alert.alert("Erro", "Este Imóvel é para? (diga se é para Venda ou Arrendamento)");
+      return false;
+    }
   
     if (!typeResi || typeResi.trim() === "") {
       Alert.alert("Erro", "Tipo de residência é obrigatório");
@@ -43,7 +48,7 @@ export default function Upload() {
     if (!location || location.trim() === "") {
       Alert.alert("Erro", "Localização é obrigatória");
       return false;
-    } 
+    }
   
     if (!price || isNaN(price) || parseFloat(price) <= 0) {
       Alert.alert("Erro", "Preço inválido (deve ser um valor positivo)");
@@ -53,12 +58,6 @@ export default function Upload() {
     // Validações específicas
     if (!typology || typology.trim() === "") {
       Alert.alert("Erro", "Tipologia (T2, T3, etc.) é obrigatória");
-      return false;
-    }
-    
-  
-    if (!roomCount || isNaN(roomCount) || parseInt(roomCount) <= 0) {
-      Alert.alert("Erro", "Número de quartos inválido");
       return false;
     }
   
@@ -92,16 +91,31 @@ export default function Upload() {
   
     if (!result.canceled && result.assets) {
       const validImages = [];
-  
+    
       for (let asset of result.assets) {
-        const fileInfo = await FileSystem.getInfoAsync(asset.uri);
-        if (fileInfo.size > 5 * 1024 * 1024) {
-          Alert.alert("Erro", "Alguma imagem excede 5MB e foi ignorada.");
+        try {
+          // 1. Copia a imagem para um local permanente
+          const newPath = `${FileSystem.documentDirectory}${Date.now()}.jpg`;
+          await FileSystem.copyAsync({
+            from: asset.uri,
+            to: newPath,
+          });
+    
+          // 2. Verifica o tamanho (se necessário)
+          const fileInfo = await FileSystem.getInfoAsync(newPath);
+          if (fileInfo.size > 5 * 1024 * 1024) {
+            Alert.alert("Erro", "Imagem excede 5MB e foi ignorada.");
+            continue;
+          }
+    
+          // 3. Armazena o NOVO caminho (persistente)
+          validImages.push(newPath);
+        } catch (error) {
+          console.error("Erro ao salvar imagem:", error);
           continue;
         }
-        validImages.push(asset.uri);
       }
-  
+    
       if (validImages.length > 0) {
         setImages(prev => [...prev, ...validImages]);
       }
@@ -141,6 +155,44 @@ export default function Upload() {
     setImages(newImages);
   };
 
+  const uploadImage = async (uri) => {
+    try {
+      const formData = new FormData();
+      formData.append('image', {
+        uri: uri,
+        type: 'image/jpeg',
+        name: `imovel_${Date.now()}.jpg`
+      });
+  
+      const response = await fetch('http://192.168.100.66/RESINGOLA-main/Backend/uploads/upload_image.php', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+  
+      // 1. Primeiro obtenha a resposta como texto
+      const responseText = await response.text();
+      console.log('Resposta bruta:', responseText); // Para debug
+  
+      // 2. Depois tente parsear como JSON
+      const result = JSON.parse(responseText);
+  
+      // 3. Verifique se o status é success
+      if (result.status !== 'success') {
+        throw new Error(result.message || 'Upload falhou');
+      }
+  
+      // 4. Retorne a URL da imagem
+      return result.imageUrl;
+  
+    } catch (error) {
+      console.error('Erro no upload:', error);
+      throw new Error('Falha ao enviar imagem: ' + error.message);
+    }
+  };
+  
   const getLocation = async () => {
     setIsLoadingLocation(true);
     let { status } = await Location.requestForegroundPermissionsAsync();
@@ -169,86 +221,89 @@ export default function Upload() {
   };
 
   const handleSubmit = async () => {
-    
-    if (!isFormValid()) {
-      Alert.alert(
-        'Formulário incompleto',
-        'Por favor, preencha todos os campos obrigatórios corretamente.',
-        [{ text: 'OK' }]
-      );
-
-      return;
-    }
+    if (!isFormValid()) return;
   
     try {
-
-      // Criar objeto com os dados do formulário
-      const newResidence = {
-        id: Date.now().toString(), // ID temporário
-        imagem: images[0], // Pegando a primeira imagem
-        images: images, // Todas as imagens
-        houseSize: parseFloat(houseSize),
-        typeResi: typeResi,
-        typology: typology,
-        roomCount: parseInt(roomCount),
-        livingRoomCount: parseInt(livingRoomCount),
-        kitchenCount: parseInt(kitchenCount),
-        hasWater: hasWater,
-        hasElectricity: hasElectricity,
-        location: location,
-        price: parseFloat(price),
-        createdAt: new Date().toISOString()
-      };
+      // 1. Upload de imagens (mantido igual)
+      const uploadedImages = [];
+      for (const imgUri of images) {
+        const imageUrl = await uploadImage(imgUri);
+        uploadedImages.push(imageUrl);
+      }
   
+            // 2. Preparação dos dados (mantido igual)
+            const residenceData = {
+              imagem: uploadedImages[0],
+              images: uploadedImages,
+              houseSize: parseFloat(houseSize),
+              status: status,
+              typeResi: typeResi,
+              typology: typology,
+              livingRoomCount: parseInt(livingRoomCount),
+              kitchenCount: parseInt(kitchenCount),
+              hasWater: hasWater,
+              hasElectricity: hasElectricity,
+              location: location,
+              price: parseFloat(price),
+              createdAt: new Date().toISOString()
+            };
   
-    // 1. Tentar enviar para o servidor
-    try {
-      const response = await fetch('http://192.168.40.25/RESINGOLA-main/Backend/conect.php', {
+      // 3. Envio para o servidor - CORREÇÃO PRINCIPAL
+      const response = await fetch('http://192.168.100.66/RESINGOLA-main/Backend/conect.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
-        body: JSON.stringify(newResidence)
+        body: JSON.stringify(residenceData)
       });
-
-      const result = await response.json();
-
-      if (result.status !== 'success') {
-        throw new Error(result.message || 'Erro ao cadastrar no servidor');
+  
+      // 4. Tratamento INFALÍVEL da resposta
+      const responseText = await response.text();
+      
+      if (!responseText) {
+        // Se vazio mas status HTTP for 200, considera sucesso
+        if (response.ok) {
+          Alert.alert('Sucesso', 'Cadastro realizado!');
+          navigation.navigate('Home');
+          return;
+        }
+        throw new Error('Servidor retornou resposta vazia');
       }
-
-      // Mostrar mensagem de sucesso e navegar para Home
-      Alert.alert(
-        'Sucesso',
-        'Residência cadastrada com sucesso!',
-        [{
-          text: 'OK',
-          onPress: () => navigation.navigate('Home')
-        }]
-      );
-
-      // Resetar o formulário
-      resetForm();
-
-    } catch (serverError) {
-      console.warn('Erro ao enviar para o servidor:', serverError);
-      Alert.alert('Erro', 'Não foi possível cadastrar no servidor.');
-    }
-
+  
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch {
+        // Se não for JSON mas tiver conteúdo
+        if (response.ok && responseText.includes('sucesso')) {
+          Alert.alert('Sucesso', 'Cadastro realizado!');
+          navigation.navigate('Home');
+          return;
+        }
+        throw new Error(`Resposta inválida: ${responseText.substring(0, 50)}`);
+      }
+  
+      // 5. Verificação de sucesso
+      if (response.ok && (result.status === 'success' || result.success)) {
+        Alert.alert('Sucesso', result.message || 'Cadastro realizado!');
+        navigation.navigate('Home');
+      } else {
+        throw new Error(result.message || result.error || 'Erro no servidor');
+      }
   
     } catch (error) {
-      console.error('Erro ao salvar residência:', error);
-      Alert.alert('Erro', 'Não foi possível cadastrar a residência: ' + error.message);
+      console.error('Erro:', error);
+      Alert.alert('Erro', error.message || 'Falha no cadastro');
     }
   };
-  
-  // Função para resetar o formulário
+
   const resetForm = () => {
     setImages([]);
     setHouseSize('');
+    setStatus('');
     setTypeResi('Apartamento');
     setTypology('');
-    setRoomCount('');
     setLivingRoomCount('');
     setKitchenCount('');
     setHasWater(false);
@@ -267,7 +322,14 @@ export default function Upload() {
             keyExtractor={(item, index) => index.toString()}
             renderItem={({ item, index }) => (
               <View style={styles.imageContainer}>
-                <Image source={{ uri: item }} style={styles.image} />
+                <Image 
+                  source={{ uri: item }} 
+                  style={styles.image}
+                  onError={(e) => {
+                    console.log('Erro ao carregar imagem:', e.nativeEvent.error);
+                    removeImage(index);
+                  }}
+                />
                 <TouchableOpacity 
                   style={styles.removeImageButton} 
                   onPress={() => removeImage(index)}
@@ -301,6 +363,19 @@ export default function Upload() {
             onChangeText={setHouseSize}
           />
 
+              <Text style={styles.label}>Imóvel Para*</Text>
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={status}
+                  onValueChange={setStatus}
+                  style={styles.picker}
+                >
+                  <Picker.Item label="Este Imóvel é para" value="" />
+                  <Picker.Item label="Venda" value="Venda" />
+                  <Picker.Item label="Arrendamento" value="Arrendamento" />
+                </Picker>
+              </View>
+
           <Text style={styles.label}>Tipo de Imóvel*</Text>
           <View style={styles.pickerContainer}>
             <Picker
@@ -308,7 +383,6 @@ export default function Upload() {
               onValueChange={(itemValue) => {
                 setTypeResi(itemValue);
                 setTypology('');
-                setRoomCount('');
                 setLivingRoomCount('');
                 setKitchenCount('');
               }}
@@ -341,7 +415,7 @@ export default function Upload() {
 
           {(typeResi === 'Moradia' || typeResi === 'Vivenda') && (
             <>
-              <Text style={styles.label}>Tipo de Imóvel*</Text>
+              <Text style={styles.label}>Tipologia de Imóvel*</Text>
               <View style={styles.pickerContainer}>
                 <Picker
                   selectedValue={typology}
@@ -354,15 +428,6 @@ export default function Upload() {
                   <Picker.Item label="T4" value="T4" />
                 </Picker>
               </View>
-
-              <Text style={styles.label}>Número de Quartos*</Text>
-              <TextInput 
-                style={styles.input} 
-                keyboardType="numeric" 
-                placeholder="Ex: 3"
-                value={roomCount} 
-                onChangeText={setRoomCount} 
-              />
               
               <Text style={styles.label}>Número de Salas*</Text>
               <TextInput 

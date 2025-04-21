@@ -27,7 +27,7 @@ const Home = () => {
       // 1. Tentar obter do servidor
       let serverResidences = [];
       try {
-        const response = await fetch('http://192.168.40.25/RESINGOLA-main/Backend/listar_residences.php'); // Substitua pela URL real da API
+        const response = await fetch('http://192.168.100.66/RESINGOLA-main/Backend/listar_residences.php'); // Substitua pela URL real da API
         const result = await response.json();
         if (result.status === 'success') {
           serverResidences = result.data || [];
@@ -41,12 +41,12 @@ const Home = () => {
         id: res.id || Date.now().toString(),
         image: res.imagem || res.images?.[0] || 'https://via.placeholder.com/150',
         images: res.images || [res.imagem] || [],
+        status: res.status || res.status || 'Status não especificado',
         typology: res.typology || res.typeResi || 'Tipo não especificado',
         typeResi: res.typeResi || 'Não especificado',
         houseSize: res.houseSize ? `${res.houseSize} m²` : 'Tamanho não especificado',
         location: res.location || 'Localização não especificada',
         price: res.price ? `Kz ${res.price.toLocaleString()}` : 'Preço não especificado',
-        roomCount: res.roomCount || 0,
         livingRoomCount: res.livingRoomCount || 0,
         kitchenCount: res.kitchenCount || 0,
         hasWater: res.hasWater || false,
@@ -109,7 +109,7 @@ const Home = () => {
           onPress: async () => {
             try {
               // Chamada à API para deletar do banco
-              const response = await fetch('http://192.168.40.25/RESINGOLA-main/Backend/deletar.php', {
+              const response = await fetch('http://192.168.100.66/RESINGOLA-main/Backend/deletar.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id: cardId })
@@ -203,6 +203,7 @@ const Home = () => {
                   </View>
                 </Pressable>
                 <View style={styles.cardInfoBuy}>
+                <Text style={styles.cardInfoText}>{residence.status}</Text>
                 <Text style={styles.cardInfoText}>{residence.price}</Text>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}>
                   <Pressable onPress={() => handleSaveCard(residence)}>
