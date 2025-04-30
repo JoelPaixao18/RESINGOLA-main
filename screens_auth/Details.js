@@ -22,7 +22,6 @@ function Details() {
         <Text style={styles.descriptionText}>
           Esta residência é um/a {residence.typeResi.toLowerCase()} {residence.typology ? `(${residence.typology})` : ''} localizado em {residence.location}. 
           Possui {residence.houseSize} de área construída, com:
-          {"\n\n"}- {residence.roomCount} quarto(s)
           {"\n"}- {residence.livingRoomCount} sala(s)
           {"\n"}- {residence.kitchenCount} cozinha(s)
           {"\n\n"}Recursos disponíveis: {resources.length > 0 ? resources.join(', ') : 'Nenhum recurso disponível'}.
@@ -97,12 +96,6 @@ function Details() {
           <View style={styles.sellerInfoRight}>
             <PhoneCall size={32} weight='fill' color='#808080'/>
           </View>
-        </View>
-
-        <View>
-          <TouchableOpacity style={styles.button}>
-              <Text style={styles.buttonText}>Comprar</Text>
-          </TouchableOpacity>
         </View>
 
       </ScrollView>

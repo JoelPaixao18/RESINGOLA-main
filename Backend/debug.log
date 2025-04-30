@@ -1,0 +1,114 @@
+Array
+(
+    [imagem] => http://192.168.137.96/RESINGOLA-main/Backend/uploads/img_680f97a76ba8a.jpg
+    [images] => ["http://192.168.137.96/RESINGOLA-main/Backend/uploads/img_680f97a76ba8a.jpg"]
+    [houseSize] => 15
+    [status] => Arrendamento
+    [typeResi] => Apartamento
+    [typology] => T3
+    [livingRoomCount] => 1
+    [kitchenCount] => 1
+    [hasWater] => 1
+    [hasElectricity] => 1
+    [bathroomCount] => 2
+    [quintal] => 
+    [andares] => 1
+    [garagem] => 
+    [varanda] => 
+    [location] => Luanda, Rangel
+    [price] => 85000
+    [createdAt] => 2025-04-28T14:58:47.144Z
+)
+Array
+(
+    [imagem] => http://192.168.137.96/RESINGOLA-main/Backend/uploads/img_680f97b8da71c.jpg
+    [images] => ["http://192.168.137.96/RESINGOLA-main/Backend/uploads/img_680f97b8da71c.jpg"]
+    [houseSize] => 15
+    [status] => Arrendamento
+    [typeResi] => Apartamento
+    [typology] => T3
+    [livingRoomCount] => 1
+    [kitchenCount] => 1
+    [hasWater] => 1
+    [hasElectricity] => 1
+    [bathroomCount] => 2
+    [quintal] => 
+    [andares] => 1
+    [garagem] => 
+    [varanda] => 
+    [location] => Luanda, Rangel
+    [price] => 85000
+    [createdAt] => 2025-04-28T14:59:04.568Z
+)
+Array
+(
+    [images] => Array
+        (
+            [0] => url_da_imagem1.jpg
+            [1] => url_da_imagem2.jpg
+        )
+
+    [houseSize] => 120
+    [status] => Venda
+    [typeResi] => Apartamento
+    [typology] => T2
+    [livingRoomCount] => 1
+    [kitchenCount] => 1
+    [hasWater] => 1
+    [hasElectricity] => 1
+    [bathroomCount] => 1
+    [quintal] => 
+    [andares] => 1
+    [garagem] => 
+    [varanda] => 1
+    [location] => Luanda, Maianga
+    [price] => 150000
+)
+Array
+(
+    [images] => Array
+        (
+            [0] => apple.png
+            [1] => facebook.png
+        )
+
+    [houseSize] => 120
+    [status] => Venda
+    [typeResi] => Apartamento
+    [typology] => T2
+    [livingRoomCount] => 1
+    [kitchenCount] => 1
+    [hasWater] => 1
+    [hasElectricity] => 1
+    [bathroomCount] => 1
+    [quintal] => 
+    [andares] => 1
+    [garagem] => 
+    [varanda] => 1
+    [location] => Luanda, Maianga
+    [price] => 150000
+)
+Array
+(
+    [images] => Array
+        (
+            [0] => apple.png
+            [1] => facebook.png
+        )
+
+    [houseSize] => 120
+    [status] => Venda
+    [typeResi] => Apartamento
+    [typology] => T2
+    [livingRoomCount] => 1
+    [kitchenCount] => 1
+    [hasWater] => 1
+    [hasElectricity] => 1
+    [bathroomCount] => 1
+    [quintal] => 
+    [andares] => 1
+    [garagem] => 
+    [varanda] => 1
+    [location] => Luanda, Maianga
+    [price] => 150000
+)

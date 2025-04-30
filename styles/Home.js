@@ -37,18 +37,19 @@ export default StyleSheet.create({
   },
   typeHouseContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: SCREEN_WIDTH * 0.04,
-    marginBottom: SCREEN_HEIGHT * 0.03,
+    justifyContent: 'space-around',
+    paddingHorizontal: 10,
+    marginBottom: 20,
   },
   typeHouseButton: {
-    backgroundColor: '#f2f2f2',
-    paddingVertical: SCREEN_HEIGHT * 0.015,
-    paddingHorizontal: SCREEN_WIDTH * 0.1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#ccc',
   },
   typeHouseText: {
-    fontSize: SCREEN_WIDTH * 0.035,
+    fontSize: 14,
     color: '#333',
   },
   content: {
@@ -119,16 +120,6 @@ input: {
   paddingLeft: SCREEN_WIDTH * 0.025,
   fontSize: SCREEN_WIDTH * 0.04,
 },
-typeHouseButton: {
-  backgroundColor: '#f2f2f2',
-  paddingVertical: SCREEN_HEIGHT * 0.015,
-  paddingHorizontal: SCREEN_WIDTH * 0.1,
-  borderRadius: 20,
-},
-typeHouseText: {
-  fontSize: SCREEN_WIDTH * 0.035,
-  color: '#333',
-},
 cardInfoTitle: {
   fontSize: SCREEN_WIDTH * 0.04,
   fontWeight: 'bold',
@@ -142,6 +133,15 @@ cardInfoText: {
   fontSize: SCREEN_WIDTH * 0.04,
   fontWeight: 'bold',
   color: '#333',
+},
+
+activeFilterButton: {
+  backgroundColor: '#007AFF',
+  borderColor: '#007AFF',
+},
+activeFilterText: {
+  color: 'white',
+  fontWeight: 'bold',
 },
 
 });

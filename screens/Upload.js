@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, Switch, ActivityIndicator, FlatList, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, Switch, ActivityIndicator, FlatList, Alert, ActionSheetIOS } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
@@ -7,72 +7,168 @@ import * as Location from 'expo-location';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import styles from '../styles/Upload';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Custom Radio Button Component
+const RadioButton = ({ selected, onPress, label }) => (
+  <TouchableOpacity 
+    style={[
+      styles.radioOption,
+      selected && styles.radioOptionSelected  // Aplica estilo quando selecionado
+    ]} 
+    onPress={onPress}
+  >
+    <View style={styles.radioCircle}>
+      {selected && <View style={styles.radioCheckedCircle} />}
+    </View>
+    <Text style={styles.radioLabel}>{label}</Text>
+  </TouchableOpacity>
+);
 
 export default function Upload() {
   const [images, setImages] = useState([]);
   const [houseSize, setHouseSize] = useState('');
   const [status, setStatus] = useState('');
-  const [typeResi, setTypeResi] = useState('Apartamento'); // Renomeado de typology para typeResi
-  const [typology, setTypology] = useState(''); // Agora será usado apenas para T2, T3, T4
+  const [typeResi, setTypeResi] = useState('Apartamento');
+  const [typology, setTypology] = useState('');
   const [livingRoomCount, setLivingRoomCount] = useState('');
   const [kitchenCount, setKitchenCount] = useState('');
   const [hasWater, setHasWater] = useState(false);
   const [hasElectricity, setHasElectricity] = useState(false);
+  const [bathroomCount, setBathroomCount] = useState('');
+  const [quintal, setQuintal] = useState(false);
+  const [andares, setAndares] = useState('1'); // Valor padrão como string '1'
+  const [garagem, setGaragem] = useState(false);
+  const [varanda, setVaranda] = useState(false);
   const [location, setLocation] = useState(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [price, setPrice] = useState('');
   const navigation = useNavigation();
+  const [errors, setErrors] = useState({});
 
   const isFormValid = () => {
-    // Validação básica de campos obrigatórios
+    const newErrors = {};
+  
+    if (images.length === 0) newErrors.images = true;
+    if (!houseSize || isNaN(houseSize) || parseFloat(houseSize) <= 0) newErrors.houseSize = true;
+    if (!status) newErrors.status = true;
+    if (!typeResi) newErrors.typeResi = true;
+    
+    // Validações condicionais
+    if (typeResi === 'Apartamento') {
+      if (!typology) newErrors.typology = true;
+      if (!livingRoomCount) newErrors.livingRoomCount = true;
+      if (!bathroomCount) newErrors.bathroomCount = true;
+      if (!kitchenCount) newErrors.kitchenCount = true;
+    }
+    
+
+    // Validações básicas que aplicam a todos os tipos
     if (images.length === 0) {
       Alert.alert("Erro", "Adicione pelo menos uma imagem");
       return false;
     }
   
     if (!houseSize || isNaN(houseSize) || parseFloat(houseSize) <= 0) {
-      Alert.alert("Erro", "Tamanho da casa inválido (deve ser um número positivo)");
+      Alert.alert("Erro", "Informe um tamanho válido para a casa (em m²)");
       return false;
+    }
+  
+    if (!status) {
+      Alert.alert("Erro", "Selecione se o imóvel é para Venda ou Arrendamento");
+      return false;
+    }
+  
+    if (!typeResi) {
+      Alert.alert("Erro", "Selecione o tipo de imóvel");
+      return false;
+    }
+  
+    // Validações específicas para cada tipo de imóvel
+    if (typeResi === 'Apartamento') {
+      if (!typology) {
+        Alert.alert("Erro", "Selecione a tipologia do apartamento (T2, T3, T4)");
+        return false;
+      }
+      if (!livingRoomCount) {
+        Alert.alert("Erro", "Selecione o número de salas");
+        return false;
+      }
+      if (!bathroomCount) {
+        Alert.alert("Erro", "Selecione o número de banheiros");
+        return false;
+      }
+      if (!kitchenCount) {
+        Alert.alert("Erro", "Selecione o número de cozinhas");
+        return false;
+      }
+    } 
+    else if (typeResi === 'Vivenda') {
+      if (!typology) {
+        Alert.alert("Erro", "Selecione a tipologia da vivenda (T2, T3, T4)");
+        return false;
+      }
+      if (!livingRoomCount) {
+        Alert.alert("Erro", "Selecione o número de salas");
+        return false;
+      }
+      if (!bathroomCount) {
+        Alert.alert("Erro", "Selecione o número de banheiros");
+        return false;
+      }
+      if (!kitchenCount) {
+        Alert.alert("Erro", "Selecione o número de cozinhas");
+        return false;
+      }
+      if (!andares) {
+        Alert.alert("Erro", "Selecione o número de andares");
+        return false;
+      }
+    } 
+    else if (typeResi === 'Moradia') {
+      if (!typology) {
+        Alert.alert("Erro", "Selecione a tipologia da moradia (T2, T3, T4)");
+        return false;
+      }
+      if (!livingRoomCount) {
+        Alert.alert("Erro", "Selecione o número de salas");
+        return false;
+      }
+      if (!bathroomCount) {
+        Alert.alert("Erro", "Selecione o número de banheiros");
+        return false;
+      }
+      if (!kitchenCount) {
+        Alert.alert("Erro", "Selecione o número de cozinhas");
+        return false;
+      }
+      if (!andares) {
+        Alert.alert("Erro", "Selecione o número de andares");
+        return false;
+      }
     }
 
-    if (!status || status.trim() === "") {
-      Alert.alert("Erro", "Este Imóvel é para? (diga se é para Venda ou Arrendamento)");
-      return false;
+    if (typeResi === 'Vivenda' && !andares) {
+      newErrors.andares = 'Selecione o número de andares';
     }
   
-    if (!typeResi || typeResi.trim() === "") {
-      Alert.alert("Erro", "Tipo de residência é obrigatório");
-      return false;
-    }
-  
+    // Validações comuns a todos os tipos
     if (!location || location.trim() === "") {
       Alert.alert("Erro", "Localização é obrigatória");
       return false;
     }
   
     if (!price || isNaN(price) || parseFloat(price) <= 0) {
-      Alert.alert("Erro", "Preço inválido (deve ser um valor positivo)");
+      Alert.alert("Erro", "Informe um preço válido");
       return false;
     }
   
-    // Validações específicas
-    if (!typology || typology.trim() === "") {
-      Alert.alert("Erro", "Tipologia (T2, T3, etc.) é obrigatória");
-      return false;
-    }
-  
-    if (!livingRoomCount || isNaN(livingRoomCount) || parseInt(livingRoomCount) < 0) {
-      Alert.alert("Erro", "Número de salas inválido");
-      return false;
-    }
-  
-    if (!kitchenCount || isNaN(kitchenCount) || parseInt(kitchenCount) <= 0) {
-      Alert.alert("Erro", "Número de cozinhas inválido");
-      return false;
-    }
-  
-    return true;
-  };
+      if (!location || location.trim() === "") newErrors.location = true;
+      if (!price || isNaN(price) || parseFloat(price) <= 0) newErrors.price = true;
+
+      setErrors(newErrors);
+      return Object.keys(newErrors).length === 0;
+    };
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -157,6 +253,12 @@ export default function Upload() {
 
   const uploadImage = async (uri) => {
     try {
+      // Verificar conexão antes de tentar o upload
+      const isConnected = await checkNetworkConnection();
+      if (!isConnected) {
+        throw new Error('Sem conexão com a internet');
+      }
+  
       const formData = new FormData();
       formData.append('image', {
         uri: uri,
@@ -164,32 +266,51 @@ export default function Upload() {
         name: `imovel_${Date.now()}.jpg`
       });
   
-      const response = await fetch('http://192.168.100.66/RESINGOLA-main/Backend/uploads/upload_image.php', {
+      const response = await fetch('http://172.16.40.20/RESINGOLA-main/Backend/uploads/upload_image.php', {
         method: 'POST',
         body: formData,
         headers: {
           'Accept': 'application/json',
+          'Content-Type': 'multipart/form-data',
         },
+        timeout: 30000, // 30 segundos de timeout
       });
   
-      // 1. Primeiro obtenha a resposta como texto
+      // Verificar se a resposta está OK
+      if (!response.ok) {
+        throw new Error(`Erro HTTP: ${response.status}`);
+      }
+  
       const responseText = await response.text();
-      console.log('Resposta bruta:', responseText); // Para debug
+      
+      if (!responseText) {
+        throw new Error('Resposta do servidor vazia');
+      }
   
-      // 2. Depois tente parsear como JSON
       const result = JSON.parse(responseText);
-  
-      // 3. Verifique se o status é success
-      if (result.status !== 'success') {
+      
+      if (!result.status || result.status !== 'success') {
         throw new Error(result.message || 'Upload falhou');
       }
   
-      // 4. Retorne a URL da imagem
       return result.imageUrl;
   
     } catch (error) {
       console.error('Erro no upload:', error);
-      throw new Error('Falha ao enviar imagem: ' + error.message);
+      throw new Error(`Falha ao enviar imagem: ${error.message}`);
+    }
+  };
+  
+  // Função para verificar conexão
+  const checkNetworkConnection = async () => {
+    try {
+      const response = await fetch('http://172.16.40.20', {
+        method: 'HEAD',
+        timeout: 5000,
+      });
+      return true;
+    } catch {
+      return false;
     }
   };
   
@@ -224,77 +345,83 @@ export default function Upload() {
     if (!isFormValid()) return;
   
     try {
-      // 1. Upload de imagens (mantido igual)
-      const uploadedImages = [];
-      for (const imgUri of images) {
-        const imageUrl = await uploadImage(imgUri);
-        uploadedImages.push(imageUrl);
-      }
+      // 1. Upload de imagens
+      const uploadedImages = await Promise.all(
+        images.map(async (uri) => {
+          try {
+            const imageUrl = await uploadImage(uri);
+            // Garante que é uma URL completa
+            if (!imageUrl.startsWith('http')) {
+              return `http://172.16.40.20/RESINGOLA-main/Backend/uploads/${imageUrl}`;
+            }
+            return imageUrl;
+          } catch (error) {
+            console.error('Erro no upload:', error);
+            throw new Error('Falha ao enviar imagens');
+          }
+        })
+      );
   
-            // 2. Preparação dos dados (mantido igual)
-            const residenceData = {
-              imagem: uploadedImages[0],
-              images: uploadedImages,
-              houseSize: parseFloat(houseSize),
-              status: status,
-              typeResi: typeResi,
-              typology: typology,
-              livingRoomCount: parseInt(livingRoomCount),
-              kitchenCount: parseInt(kitchenCount),
-              hasWater: hasWater,
-              hasElectricity: hasElectricity,
-              location: location,
-              price: parseFloat(price),
-              createdAt: new Date().toISOString()
-            };
+      // 2. Preparar dados
+      const residenceData = {
+        imagem: uploadedImages[0],
+        images: JSON.stringify(uploadedImages),
+        houseSize: parseFloat(houseSize),
+        status: status,
+        typeResi: typeResi,
+        typology: typology,
+        livingRoomCount: parseInt(livingRoomCount) || 0,
+        kitchenCount: parseInt(kitchenCount) || 1,
+        hasWater: hasWater,
+        hasElectricity: hasElectricity,
+        bathroomCount: parseInt(bathroomCount) || 1,
+        quintal: quintal,
+        andares: parseInt(andares) || 1,
+        garagem: garagem,
+        varanda: varanda,
+        location: location,
+        price: parseFloat(price),
+        createdAt: new Date().toISOString()
+      };
   
-      // 3. Envio para o servidor - CORREÇÃO PRINCIPAL
-      const response = await fetch('http://192.168.100.66/RESINGOLA-main/Backend/conect.php', {
+      // 3. Enviar para o servidor
+      const response = await fetch('http://172.16.40.20/RESINGOLA-main/Backend/conect.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
         },
         body: JSON.stringify(residenceData)
       });
   
-      // 4. Tratamento INFALÍVEL da resposta
+      // Verifique primeiro o status da resposta
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Resposta do servidor:', errorText);
+      throw new Error(`Erro HTTP ${response.status}`);
+    }
+
+    // Tente parsear como JSON
+    let result;
+    try {
+      result = await response.json();
+    } catch (jsonError) {
       const responseText = await response.text();
-      
-      if (!responseText) {
-        // Se vazio mas status HTTP for 200, considera sucesso
-        if (response.ok) {
-          Alert.alert('Sucesso', 'Cadastro realizado!');
-          navigation.navigate('Home');
-          return;
-        }
-        throw new Error('Servidor retornou resposta vazia');
-      }
+      console.error('Falha ao parsear JSON:', responseText);
+      throw new Error('Resposta do servidor não é JSON válido');
+    }
+
+    if (!result.status || result.status !== 'success') {
+      throw new Error(result.message || 'Erro no servidor');
+    }
   
-      let result;
-      try {
-        result = JSON.parse(responseText);
-      } catch {
-        // Se não for JSON mas tiver conteúdo
-        if (response.ok && responseText.includes('sucesso')) {
-          Alert.alert('Sucesso', 'Cadastro realizado!');
-          navigation.navigate('Home');
-          return;
-        }
-        throw new Error(`Resposta inválida: ${responseText.substring(0, 50)}`);
-      }
-  
-      // 5. Verificação de sucesso
-      if (response.ok && (result.status === 'success' || result.success)) {
-        Alert.alert('Sucesso', result.message || 'Cadastro realizado!');
-        navigation.navigate('Home');
-      } else {
-        throw new Error(result.message || result.error || 'Erro no servidor');
-      }
+      // Sucesso
+      Alert.alert('Sucesso', 'Imóvel cadastrado com sucesso!');
+      resetForm();
+      navigation.navigate('Home');
   
     } catch (error) {
-      console.error('Erro:', error);
-      Alert.alert('Erro', error.message || 'Falha no cadastro');
+      console.error('Erro completo:', error);
+      Alert.alert('Erro', error.message || 'Erro ao cadastrar imóvel');
     }
   };
 
@@ -308,11 +435,17 @@ export default function Upload() {
     setKitchenCount('');
     setHasWater(false);
     setHasElectricity(false);
+    setBathroomCount('');
+    setQuintal(false);
+    setAndares('');
+    setGaragem(false);
+    setVaranda(false);
     setLocation(null);
     setPrice('');
   };
 
   return (
+    
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
         {images.length > 0 ? (
@@ -354,151 +487,391 @@ export default function Upload() {
         </Text>
 
         <View style={styles.form}>
-          <Text style={styles.label}>Tamanho da casa (m²)*</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Ex: 120"
-            keyboardType="numeric"
-            value={houseSize}
-            onChangeText={setHouseSize}
-          />
-
-              <Text style={styles.label}>Imóvel Para*</Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={status}
-                  onValueChange={setStatus}
-                  style={styles.picker}
-                >
-                  <Picker.Item label="Este Imóvel é para" value="" />
-                  <Picker.Item label="Venda" value="Venda" />
-                  <Picker.Item label="Arrendamento" value="Arrendamento" />
-                </Picker>
-              </View>
-
-          <Text style={styles.label}>Tipo de Imóvel*</Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={typeResi}
-              onValueChange={(itemValue) => {
-                setTypeResi(itemValue);
-                setTypology('');
-                setLivingRoomCount('');
-                setKitchenCount('');
-              }}
-              style={styles.picker}
-            >
-              <Picker.Item label="Selecione o Tipo de Imóvel" value="" />
-              <Picker.Item label="Apartamento" value="Apartamento" />
-              <Picker.Item label="Vivenda" value="Vivenda" />
-              <Picker.Item label="Moradia" value="Moradia" />
-            </Picker>
-          </View>
-
-          {typeResi === 'Apartamento' && (
-            <>
-              <Text style={styles.label}>Tipologia do Imóvel*</Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={typology}
-                  onValueChange={setTypology}
-                  style={styles.picker}
-                >
-                  <Picker.Item label="Selecione a Tipologia" value="" />
-                  <Picker.Item label="T2" value="T2" />
-                  <Picker.Item label="T3" value="T3" />
-                  <Picker.Item label="T4" value="T4" />
-                </Picker>
-              </View>
-            </>
-          )}
-
-          {(typeResi === 'Moradia' || typeResi === 'Vivenda') && (
-            <>
-              <Text style={styles.label}>Tipologia de Imóvel*</Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={typology}
-                  onValueChange={setTypology}
-                  style={styles.picker}
-                >
-                  <Picker.Item label="Selecione o tipo" value="" />
-                  <Picker.Item label="T2" value="T2" />
-                  <Picker.Item label="T3" value="T3" />
-                  <Picker.Item label="T4" value="T4" />
-                </Picker>
-              </View>
-              
-              <Text style={styles.label}>Número de Salas*</Text>
-              <TextInput 
-                style={styles.input} 
-                keyboardType="numeric" 
-                placeholder="Ex: 2"
-                value={livingRoomCount} 
-                onChangeText={setLivingRoomCount} 
-              />
-              
-              <Text style={styles.label}>Número de Cozinhas*</Text>
-              <TextInput 
-                style={styles.input} 
-                keyboardType="numeric" 
-                placeholder="Ex: 1"
-                value={kitchenCount} 
-                onChangeText={setKitchenCount} 
-              />
-            </>
-          )}
-
-          <Text style={styles.label}>Recursos</Text>
-          <View style={styles.switchContainer}>
-            <Text>Água</Text>
-            <Switch
-              value={hasWater}
-              onValueChange={setHasWater}
-              trackColor={{ false: '#767577', true: '#81b0ff' }}
-            />
-          </View>
-          <View style={styles.switchContainer}>
-            <Text>Energia Elétrica</Text>
-            <Switch
-              value={hasElectricity}
-              onValueChange={setHasElectricity}
-              trackColor={{ false: '#767577', true: '#81b0ff' }}
+          {/* Campos básicos que sempre aparecem */}
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Tamanho da casa (m²)*</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Ex: 120"
+              keyboardType="numeric"
+              value={houseSize}
+              onChangeText={setHouseSize}
             />
           </View>
 
-          <Text style={styles.label}>Localização*</Text>
-          <TouchableOpacity style={styles.locationButton} onPress={getLocation}>
-            {isLoadingLocation ? (
-              <ActivityIndicator color="#6200ee" />
-            ) : (
-              <Text style={styles.locationButtonText}>
-                {location || 'Obter Localização'}
-              </Text>
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Imóvel Para*</Text>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={status}
+                onValueChange={setStatus}
+                style={styles.picker}
+              >
+                <Picker.Item label="Este Imóvel é para" value="" />
+                <Picker.Item label="Venda" value="Venda" />
+                <Picker.Item label="Arrendamento" value="Arrendamento" />
+              </Picker>
+            </View>
+          </View>
+
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Tipo de Imóvel*</Text>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={typeResi}
+                onValueChange={(itemValue) => {
+                  setTypeResi(itemValue);
+                  // Resetar campos específicos quando mudar o tipo
+                  setTypology('');
+                  setLivingRoomCount('');
+                  setKitchenCount('');
+                  setBathroomCount('');
+                  setVaranda(false);
+                }}
+                style={styles.picker}
+              >
+                <Picker.Item label="Selecione o Tipo de Imóvel" value="Selecione a Tipo de Imóvel" />
+                <Picker.Item label="Apartamento" value="Apartamento" />
+                <Picker.Item label="Vivenda" value="Vivenda" />
+                <Picker.Item label="Moradia" value="Moradia" />
+              </Picker>
+            </View>
+          </View>
+          {typeResi !== "" && (
+          <>
+            {/* Campos específicos para Apartamento */}
+            {typeResi === 'Apartamento' && (
+              <>
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Tipologia*</Text>
+                  <View style={styles.radioContainer}>
+                    <RadioButton
+                      selected={typology === 'T2'}
+                      onPress={() => setTypology('T2')}
+                      label="T2"
+                    />
+                    <RadioButton
+                      selected={typology === 'T3'}
+                      onPress={() => setTypology('T3')}
+                      label="T3"
+                    />
+                    <RadioButton
+                      selected={typology === 'T4'}
+                      onPress={() => setTypology('T4')}
+                      label="T4"
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Número de Salas*</Text>
+                  <View style={styles.radioContainer}>
+                    <RadioButton
+                      selected={livingRoomCount === '1'}
+                      onPress={() => setLivingRoomCount('1')}
+                      label="1"
+                    />
+                    <RadioButton
+                      selected={livingRoomCount === '2'}
+                      onPress={() => setLivingRoomCount('2')}
+                      label="2"
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Número de Banheiros*</Text>
+                  <View style={styles.radioContainer}>
+                    <RadioButton
+                      selected={bathroomCount === '1'}
+                      onPress={() => setBathroomCount('1')}
+                      label="1"
+                    />
+                    <RadioButton
+                      selected={bathroomCount === '2'}
+                      onPress={() => setBathroomCount('2')}
+                      label="2"
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Número de Cozinhas*</Text>
+                  <View style={styles.radioContainer}>
+                    <RadioButton
+                      selected={kitchenCount === '1'}
+                      onPress={() => setKitchenCount('1')}
+                      label="1"
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Varanda</Text>
+                  <View style={styles.radioContainer}>
+                    <RadioButton
+                      selected={varanda}
+                      onPress={() => setVaranda(true)}
+                      label="Sim"
+                    />
+                    <RadioButton
+                      selected={!varanda}
+                      onPress={() => setVaranda(false)}
+                      label="Não"
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Recursos</Text>
+                  <View style={styles.switchContainer}>
+                    <Text>Água</Text>
+                    <Switch
+                      value={hasWater}
+                      onValueChange={setHasWater}
+                      trackColor={{ false: '#767577', true: '#1A7526' }}
+                      thumbColor={hasWater ? '#f4f3f4' : '#f4f3f4'}
+                    />
+                  </View>
+                  <View style={styles.switchContainer}>
+                    <Text>Energia Elétrica</Text>
+                    <Switch
+                      value={hasElectricity}
+                      onValueChange={setHasElectricity}
+                      trackColor={{ false: '#767577', true: '#1A7526' }}
+                      thumbColor={hasElectricity ? '#f4f3f4' : '#f4f3f4'}
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.formGroup}>
+                    <Text style={styles.label}>Localização*</Text>
+                    <TouchableOpacity style={styles.locationButton} onPress={getLocation}>
+                      {isLoadingLocation ? (
+                        <ActivityIndicator color="#1A7526" />
+                      ) : (
+                        <Text style={styles.locationButtonText}>
+                          {location || 'Obter Localização'}
+                        </Text>
+                      )}
+                    </TouchableOpacity>
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Preço (kz)*</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Ex: 150000"
+                      keyboardType="numeric"
+                      value={price}
+                      onChangeText={setPrice}
+                    />
+                </View>
+              </>
             )}
-          </TouchableOpacity>
 
-          <Text style={styles.label}>Preço (kz)*</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Ex: 150000"
-            keyboardType="numeric"
-            value={price}
-            onChangeText={setPrice}
-          />
+            {/* Campos específicos para Vivenda */}
+            {typeResi === 'Vivenda' && (
+              <>
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Tipologia*</Text>
+                  <View style={styles.radioContainer}>
+                    <RadioButton
+                      selected={typology === 'T2'}
+                      onPress={() => setTypology('T2')}
+                      label="T2"
+                    />
+                    <RadioButton
+                      selected={typology === 'T3'}
+                      onPress={() => setTypology('T3')}
+                      label="T3"
+                    />
+                    <RadioButton
+                      selected={typology === 'T4'}
+                      onPress={() => setTypology('T4')}
+                      label="T4"
+                    />
+                  </View>
+                </View>
 
-          <Text style={styles.requiredFieldsText}>* Campos obrigatórios</Text>
-          
-          <TouchableOpacity 
-            style={[
-              styles.submitButton, 
-              styles.disabledButton
-            ]} 
-            onPress={handleSubmit}
-            activeOpacity={0.7}
-          >
-              <Text style={styles.submitButtonText}>Cadastrar Residência</Text>
-          </TouchableOpacity>
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Número de Salas*</Text>
+                  <View style={styles.radioContainer}>
+                    <RadioButton
+                      selected={livingRoomCount === '1'}
+                      onPress={() => setLivingRoomCount('1')}
+                      label="1"
+                    />
+                    <RadioButton
+                      selected={livingRoomCount === '2'}
+                      onPress={() => setLivingRoomCount('2')}
+                      label="2"
+                    />
+                    <RadioButton
+                      selected={livingRoomCount === '3'}
+                      onPress={() => setLivingRoomCount('3')}
+                      label="3+"
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Número de Banheiros*</Text>
+                  <View style={styles.radioContainer}>
+                    <RadioButton
+                      selected={bathroomCount === '1'}
+                      onPress={() => setBathroomCount('1')}
+                      label="1"
+                    />
+                    <RadioButton
+                      selected={bathroomCount === '2'}
+                      onPress={() => setBathroomCount('2')}
+                      label="2"
+                    />
+                    <RadioButton
+                      selected={bathroomCount === '3'}
+                      onPress={() => setBathroomCount('3')}
+                      label="3+"
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Número de Cozinhas*</Text>
+                  <View style={styles.radioContainer}>
+                    <RadioButton
+                      selected={kitchenCount === '1'}
+                      onPress={() => setKitchenCount('1')}
+                      label="1"
+                    />
+                    <RadioButton
+                      selected={kitchenCount === '2'}
+                      onPress={() => setKitchenCount('2')}
+                      label="2"
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Jardim</Text>
+                  <View style={styles.radioContainer}>
+                    <RadioButton
+                      selected={quintal}
+                      onPress={() => setQuintal(true)}
+                      label="Sim"
+                    />
+                    <RadioButton
+                      selected={!quintal}
+                      onPress={() => setQuintal(false)}
+                      label="Não"
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Garagem</Text>
+                  <View style={styles.radioContainer}>
+                    <RadioButton
+                      selected={garagem}
+                      onPress={() => setGaragem(true)}
+                      label="Sim"
+                    />
+                    <RadioButton
+                      selected={!garagem}
+                      onPress={() => setGaragem(false)}
+                      label="Não"
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.formGroup}>
+                <Text style={[styles.label, errors.andares && styles.errorLabel]}>
+                  Número de Andares*
+                </Text>
+                <View style={styles.radioContainer}>
+                  <RadioButton
+                    selected={andares === '1'}
+                    onPress={() => setAndares('1')}
+                    label="1"
+                  />
+                  <RadioButton
+                    selected={andares === '2'}
+                    onPress={() => setAndares('2')}
+                    label="2"
+                  />
+                  <RadioButton
+                    selected={andares === '3'}
+                    onPress={() => setAndares('3')}
+                    label="3+"
+                  />
+                </View>
+                {errors.andares && (
+                  <Text style={styles.errorMessage}>{errors.andares}</Text>
+                )}
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Recursos</Text>
+                  <View style={styles.switchContainer}>
+                    <Text>Água</Text>
+                    <Switch
+                      value={hasWater}
+                      onValueChange={setHasWater}
+                      trackColor={{ false: '#767577', true: '#1A7526' }}
+                    />
+                  </View>
+                  <View style={styles.switchContainer}>
+                    <Text>Energia Elétrica</Text>
+                    <Switch
+                      value={hasElectricity}
+                      onValueChange={setHasElectricity}
+                      trackColor={{ false: '#767577', true: '#1A7526' }}
+                    />
+                  </View>
+                </View>
+             
+
+                  {/* Campos comuns a todos os tipos */}
+                  <View style={styles.formGroup}>
+                    <Text style={styles.label}>Localização*</Text>
+                    <TouchableOpacity style={styles.locationButton} onPress={getLocation}>
+                      {isLoadingLocation ? (
+                        <ActivityIndicator color="#1A7526" />
+                      ) : (
+                        <Text style={styles.locationButtonText}>
+                          {location || 'Obter Localização'}
+                        </Text>
+                      )}
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.formGroup}>
+                    <Text style={styles.label}>Preço (kz)*</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Ex: 150000"
+                      keyboardType="numeric"
+                      value={price}
+                      onChangeText={setPrice}
+                    />
+                  </View>
+                </>
+                )}
+             </>
+            )}
+
+          {typeResi !== "" && (
+            <>
+              <Text style={styles.requiredFieldsText}>* Campos obrigatórios</Text>
+              
+              <TouchableOpacity 
+                style={styles.submitButton} 
+                onPress={handleSubmit}
+              >
+                <Text style={styles.submitButtonText}>Cadastrar Residência</Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       </View>
     </ScrollView>

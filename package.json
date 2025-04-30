@@ -9,6 +9,11 @@
     "web": "expo start --web",
     "reset-project": "rmdir /s /q node_modules && del /f /q package-lock.json && npm install"
   },
+  "rnpm": {
+    "assets": [
+      "./assets"
+    ]
+  },
   "dependencies": {
     "@react-native-async-storage/async-storage": "1.23.1",
     "@react-native-community/checkbox": "^0.5.17",
@@ -19,8 +24,8 @@
     "@react-navigation/stack": "^7.0.18",
     "axios": "^1.8.4",
     "bcryptjs": "^2.4.3",
+    "connect": "^3.7.0",
     "cors": "^2.8.5",
-    "expo": "~52.0.42",
     "expo-camera": "~16.0.18",
     "expo-constants": "~17.0.5",
     "expo-image-picker": "~16.0.6",
@@ -31,19 +36,26 @@
     "expo-status-bar": "~2.0.1",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
+    "nativewind": "^4.1.23",
     "pg": "^8.13.1",
     "phosphor-react-native": "^2.3.1",
     "react": "18.3.1",
     "react-native": "^0.76.9",
     "react-native-elements": "^3.4.3",
     "react-native-gesture-handler": "~2.20.2",
-    "react-native-maps": "^1.18.0",
+    "react-native-heroicons": "^4.0.0",
+    "react-native-maps": "1.18.0",
+    "react-native-responsive-fontsize": "^0.5.1",
     "react-native-safe-area-context": "4.12.0",
     "react-native-screens": "~4.4.0",
-    "react-native-vector-icons": "^10.2.0"
+    "react-native-vector-icons": "^10.2.0",
+    "react-native-yamap": "^4.8.3"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0"
+    "@babel/core": "^7.20.0",
+    "babel-preset-expo": "^12.0.11",
+    "expo": "^52.0.46",
+    "metro-react-native-babel-preset": "^0.77.0"
   },
   "private": true,
   "keywords": [],

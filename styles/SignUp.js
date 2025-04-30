@@ -49,6 +49,21 @@ const styles = StyleSheet.create({
       textAlign: 'center',
       marginBottom: 10,
     },
+
+    loginRedirectContainer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      marginTop: 20,
+    },
+    loginText: {
+      color: '#666',
+      fontSize: 16,
+    },
+    loginLink: {
+      color: '#1e88e5', // ou qualquer cor que combine com seu tema
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
   });
   
   export default styles;

@@ -13,4 +13,4 @@ try {
         'message' => 'Erro na conexão: ' . $e->getMessage()
     ]);
     exit;
-}
+} 
