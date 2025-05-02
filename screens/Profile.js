@@ -35,7 +35,6 @@ export default function UserProfile() {
   const [modalAnim] = useState(new Animated.Value(0)); // Para animação de entrada do modal
   const navigation = useNavigation();
 
-
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -45,7 +44,7 @@ export default function UserProfile() {
           return;
         }
 
-        const response = await fetch(`http:////172.16.40.20/RESINGOLA-main/Backend/perfil.php?id=${userId}`);
+        const response = await fetch(`http://192.168.17.25/RESINGOLA-main/Backend/perfil.php?id=${userId}`);
         const text = await response.text();
         const data = JSON.parse(text);
 
@@ -99,6 +98,34 @@ export default function UserProfile() {
     }).start(() => setModalVisible(false));
   };
 
+  const showAboutApp = () => {
+    alert(
+      "🏡 RESINGOLA - O Futuro do Mercado Imobiliário na Palma da Sua Mão 🏡\n\n" +
+    "✨ Revolucionando a maneira como você encontra, anuncia e negocia imóveis!\n\n" +
+    "🔍 O QUE É O RESINGOLA?\n" +
+    "A plataforma definitiva que conecta proprietários, imobiliárias e interessados " +
+    "através de geolocalização inteligente, criando pontes digitais entre sonhos e endereços.\n\n" +
+    "🌐 COMO TRANSFORMAMOS O MERCADO:\n" +
+    "• Mapa interativo com imóveis que surgem como estrelas no seu caminho\n" +
+    "• Filtros inteligentes para encontrar exatamente o que você precisa\n" +
+    "• Conexão direta entre oferta e demanda, sem intermediários desnecessários\n" +
+    "• Visualização geográfica que elimina deslocamentos sem propósito\n\n" +
+    "🚀 BENEFÍCIOS EXCLUSIVOS:\n" +
+    "Para Proprietários:\n" +
+    "- Anuncie com precisão cirúrgica para seu público-alvo\n" +
+    "- Controle total sobre suas listagens\n" +
+    "\nPara Compradores/Inquilinos:\n" +
+    "- Busca por localização exata, preço e características\n" +
+    "- Economia de tempo e recursos com visualização prévia\n" +
+    "- Transparência total em todas as negociações\n\n" +
+    "💡 NOSSO DIFERENCIAL:\n" +
+    "Não somos apenas um app - somos a evolução natural do mercado imobiliário, " +
+    "trazendo agilidade, tecnologia e humanização para cada transação.\n\n" +
+    "📲 Baixe, explore e descubra como encontrar seu próximo lar " +
+    "nunca foi tão intuitivo e emocionante!"
+    );
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.header}>
@@ -136,7 +163,7 @@ export default function UserProfile() {
             <TouchableOpacity style={styles.menuItem}>
               <Text style={styles.menuText}>Editar Perfil</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity style={styles.menuItem} onPress={showAboutApp}>
               <Text style={styles.menuText}>Sobre</Text>
             </TouchableOpacity>
             <TouchableOpacity

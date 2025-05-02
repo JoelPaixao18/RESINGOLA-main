@@ -28,7 +28,7 @@ export default function Login() {
     setLoading(true);
   
     try {
-      const response = await fetch('http://172.16.40.20/RESINGOLA-main/Backend/login.php', {
+      const response = await fetch('http://192.168.17.25/RESINGOLA-main/Backend/login.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -83,15 +83,15 @@ export default function Login() {
     >
       {/* Cabeçalho fixo */}
       <View style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingTop: RFPercentage(5),
-        paddingHorizontal: RFPercentage(2),
-        paddingBottom: RFPercentage(2),
-        backgroundColor: themeColors.background,
-        borderBottomWidth: 1,
-        borderBottomColor: '#eee',
-      }}>
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingTop: RFPercentage(5),
+          paddingHorizontal: RFPercentage(2),
+          paddingBottom: RFPercentage(2),
+          backgroundColor: themeColors.background,
+          borderBottomWidth: 1,
+          borderBottomColor: '#eee',
+        }}>
         <TouchableOpacity 
           onPress={handleGoBack}
           style={{
