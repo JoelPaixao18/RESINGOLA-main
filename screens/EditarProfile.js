@@ -3,6 +3,9 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Aler
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { themeColors } from '../styles/Theme';
+import { RFPercentage, RFValue } from 'react-native-responsive-fontsize';
+import { ArrowLeftIcon } from 'react-native-heroicons/outline';
 
 const EditProfile = ({ route }) => {
   const { user, onProfileUpdated } = route.params;
@@ -88,7 +91,7 @@ const EditProfile = ({ route }) => {
       // Remove todos os caracteres não numéricos antes de enviar
       const telLimpo = formData.tel.replace(/\D/g, '');
 
-      const response = await fetch('http://192.168.66.25/RESINGOLA-main/Backend/editar_perfil.php', {
+      const response = await fetch('http://192.168.20.50/RESINGOLA-main/Backend/editar_perfil.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -123,9 +126,38 @@ const EditProfile = ({ route }) => {
     }
   };
 
+  const handleGoBack = async () => {
+    navigation.goBack();
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
+      <TouchableOpacity 
+          onPress={handleGoBack}
+          style={{
+            backgroundColor: themeColors.white,
+            borderRadius: 50,
+            padding: RFPercentage(1),
+            width: RFPercentage(6),
+            height: RFPercentage(6),
+            alignItems: 'center',
+            justifyContent: 'center',
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.2,
+            shadowRadius: 2,
+            elevation: 2,
+            position: 'absolute',
+            marginHorizontal: RFPercentage(3),
+            marginTop: RFPercentage(2),
+          }}
+        >
+            <ArrowLeftIcon
+                size={RFValue(20)} 
+                color={themeColors.dark}
+            />
+        </TouchableOpacity>
         <Text style={styles.title}>Editar Perfil</Text>
         
         {/* Campo Nome */}
@@ -231,6 +263,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
+    marginTop: 35,
   },
   title: {
     fontSize: 24,
@@ -240,7 +273,8 @@ const styles = StyleSheet.create({
     color: '#007AFF',
   },
   inputContainer: {
-    marginBottom: 20,
+    marginTop: 25,  
+    marginBottom: 5,
   },
   label: {
     fontSize: 16,

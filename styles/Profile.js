@@ -68,6 +68,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginLeft: 20,
     marginVertical: 10,
+    marginTop: 35,
   },
   flatListContainer: {
     paddingTop: 120,
@@ -147,6 +148,22 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "500",
     textAlign: "center",
+  },
+
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#666',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

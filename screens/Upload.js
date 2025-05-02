@@ -266,7 +266,7 @@ export default function Upload() {
         name: `imovel_${Date.now()}.jpg`
       });
   
-      const response = await fetch('http://192.168.17.25/RESINGOLA-main/Backend/uploads/upload_image.php', {
+      const response = await fetch('http://192.168.20.50/RESINGOLA-main/Backend/uploads/upload_image.php', {
         method: 'POST',
         body: formData,
         headers: {
@@ -304,7 +304,7 @@ export default function Upload() {
   // Função para verificar conexão
   const checkNetworkConnection = async () => {
     try {
-      const response = await fetch('http://192.168.17.25', {
+      const response = await fetch('http://192.168.20.50', {
         method: 'HEAD',
         timeout: 5000,
       });
@@ -352,7 +352,7 @@ export default function Upload() {
             const imageUrl = await uploadImage(uri);
             // Garante que é uma URL completa
             if (!imageUrl.startsWith('http')) {
-              return `http://192.168.17.25/RESINGOLA-main/Backend/uploads/${imageUrl}`;
+              return `http://192.168.20.50/RESINGOLA-main/Backend/uploads/${imageUrl}`;
             }
             return imageUrl;
           } catch (error) {
@@ -385,7 +385,7 @@ export default function Upload() {
       };
   
       // 3. Enviar para o servidor
-      const response = await fetch('http://192.168.17.25/RESINGOLA-main/Backend/conect.php', {
+      const response = await fetch('http://192.168.20.50/RESINGOLA-main/Backend/conect.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

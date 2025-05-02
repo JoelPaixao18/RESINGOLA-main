@@ -10,7 +10,7 @@ import styles from '../styles/Home';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
-const baseImageUrl = "http://192.168.17.25/RESINGOLA-main/uploads/";
+const baseImageUrl = "http://192.168.20.50/RESINGOLA-main/uploads/";
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -93,7 +93,7 @@ const Home = ({ route }) => {
 
       // 2. Buscar do servidor
       try {
-        const response = await fetch('http://192.168.17.25/RESINGOLA-main/Backend/listar_residences.php');
+        const response = await fetch('http://192.168.20.50/RESINGOLA-main/Backend/listar_residences.php');
         const result = await response.json();
         if (result.status === 'success') {
           serverResidences = result.data || [];
@@ -190,7 +190,7 @@ const Home = ({ route }) => {
           text: 'Sim', 
           onPress: async () => {
             try {
-              const response = await fetch('http://192.168.17.25/RESINGOLA-main/Backend/deletar.php', {
+              const response = await fetch('http://192.168.20.50/RESINGOLA-main/Backend/deletar.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id: cardId })
