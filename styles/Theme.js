@@ -1,3 +1,4 @@
+import { VinylRecord } from "phosphor-react-native";
 
 export const themeColors = {
     primary: '#4A90E2',
@@ -9,6 +10,7 @@ export const themeColors = {
     gree: '#008000',
     dark: '#0A1F44',
     navy: '#E8F0FE',
+    verde: '#1A7526',
   };
 
     

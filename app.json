@@ -3,6 +3,20 @@
     "name": "first-app",
     "slug": "first-app",
     "version": "1.0.0",
+    "ios": {
+      "bundleIdentifier": "com.first-app.ios"
+    },
+    "android": {
+      "package": "com.first-app.android"
+    },
+    "plugins": [
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps._some_id_here_"
+        }
+      ]
+    ],
     "orientation": "portrait",
     "splash": {
       "image": "./assets/splash.png",

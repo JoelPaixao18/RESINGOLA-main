@@ -19,8 +19,8 @@ export const welcomeStyles = StyleSheet.create({
     textAlign: 'center',
   },
   image: {
-    width: width * 0.6, // 60% da largura
-    height: width * 0.6,
+    width: width * 0.9, // 60% da largura
+    height: width * 0.8,
     borderRadius: width * 0.3, // metade da largura
     alignSelf: 'center',
     marginTop: -height * 0.15,

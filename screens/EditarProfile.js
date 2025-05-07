@@ -91,7 +91,7 @@ const EditProfile = ({ route }) => {
       // Remove todos os caracteres não numéricos antes de enviar
       const telLimpo = formData.tel.replace(/\D/g, '');
 
-      const response = await fetch('http://192.168.20.50/RESINGOLA-main/Backend/editar_perfil.php', {
+      const response = await fetch('http://192.168.20.217/RESINGOLA-main/Backend/editar_perfil.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

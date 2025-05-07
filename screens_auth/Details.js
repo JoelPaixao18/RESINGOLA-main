@@ -20,7 +20,7 @@ function Details() {
       <View style={styles.descriptionView}>
         <Text style={styles.description}>Descrição</Text>
         <Text style={styles.descriptionText}>
-          Esta residência é um/a {residence.typeResi.toLowerCase()} {residence.typology ? `(${residence.typology})` : ''} localizado em {residence.location}. 
+          Esta residência é um/a {residence.typeResi.toLowerCase()} {residence.typology ? `(${residence.typology})` : ''} localizado em {formatLocation(residence.location || '')}. 
           Possui {residence.houseSize} de área construída, com:
           {"\n"}- {residence.livingRoomCount} sala(s)
           {"\n"}- {residence.kitchenCount} cozinha(s)
@@ -31,7 +31,7 @@ function Details() {
   };
 
     // Salvar um card (opcional)
-    const handleSaveCard = async (card) => {
+  const handleSaveCard = async (card) => {
       try {
         const savedCardsData = await AsyncStorage.getItem('savedCards');
         const savedCards = savedCardsData ? JSON.parse(savedCardsData) : [];
@@ -50,11 +50,49 @@ function Details() {
       } catch (error) {
         console.error('Erro ao salvar card', error);
       }
-    };
+  };
   
 
   const handleGoBack = () => {
     navigation.goBack();
+  };
+
+  const formatLocation = (locationString) => {
+    if (!locationString) return 'Local não especificado';
+    
+    // Se já estiver no formato desejado (Luanda, Cazenga)
+    if (typeof locationString === 'string' && !locationString.startsWith('{')) {
+      return locationString
+        .replace('Província ', '')
+        .replace('Município ', '');
+    }
+    
+    try {
+      // Tenta parsear apenas se for um JSON válido
+      if (typeof locationString === 'string' && locationString.startsWith('{')) {
+        const location = JSON.parse(locationString);
+        let address = location.address || locationString;
+        
+        return address
+          .replace('Província ', '')
+          .replace('Município ', '');
+      }
+      
+      // Se for um objeto de localização diretamente
+      if (typeof locationString === 'object' && locationString.address) {
+        return locationString.address
+          .replace('Província ', '')
+          .replace('Município ', '');
+      }
+      
+      return locationString;
+      
+    } catch (e) {
+      console.error('Erro ao formatar localização:', e);
+      return typeof locationString === 'string' ? 
+        locationString.replace('Província ', '').replace('Município ', '') : 
+        'Local não especificado';
+    }
   };
 
   return (
@@ -76,7 +114,7 @@ function Details() {
 
         <View style={styles.contentAddress}>
           <MapPin size={36} color='#1A7526' weight='fill' />
-          <Text style={styles.contentAddressText}>{residence.location}</Text>
+          <Text style={styles.contentAddressText}>{formatLocation(residence.location || '')}</Text>
           <Text style={styles.contentAddressPrice}>{residence.price}</Text>
         </View>
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, TouchableOpacity, SafeAreaView, Modal, Animated } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, SafeAreaView, Modal, Animated, ActivityIndicator  } from "react-native";
 import styles from "../styles/Profile";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -23,7 +23,7 @@ export default function UserProfile() {
         }
 
         // Busca dados do usuário
-        const userResponse = await fetch(`http://192.168.20.50/RESINGOLA-main/Backend/perfil.php?id=${userId}`);
+        const userResponse = await fetch(`http://192.168.20.217/RESINGOLA-main/Backend/perfil.php?id=${userId}`);
         const userText = await userResponse.text();
         const userData = JSON.parse(userText);
 
@@ -34,7 +34,7 @@ export default function UserProfile() {
         }
 
         // Busca imóveis do usuário
-        const propertiesResponse = await fetch(`http://192.168.20.50/RESINGOLA-main/Backend/user_properties.php?user_id=${userId}`);
+        const propertiesResponse = await fetch(`http://192.168.20.217/RESINGOLA-main/Backend/user_properties.php?user_id=${userId}`);
         const propertiesText = await propertiesResponse.text();
         const propertiesData = JSON.parse(propertiesText);
 
@@ -125,7 +125,7 @@ export default function UserProfile() {
 
   const handleDeleteProperty = async (propertyId) => {
     try {
-      const response = await fetch(`http://192.168.20.50/RESINGOLA-main/Backend/deletar.php`, {
+      const response = await fetch(`http://192.168.20.217/RESINGOLA-main/Backend/deletar.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -150,101 +150,157 @@ export default function UserProfile() {
 
   const renderEmptyList = () => (
     <View style={styles.emptyContainer}>
+      <Icon name="home-outline" size={50} color="#ccc" />
       <Text style={styles.emptyText}>Nenhum imóvel cadastrado</Text>
     </View>
   );
 
   return (
     <SafeAreaView style={styles.safe}>
+      {/* Header com informações do usuário */}
       <View style={styles.header}>
-        <View style={styles.initialsCircle}>
-          <Text style={styles.initialsText}>{getInitials(user?.nome)}</Text>
-        </View>
-        <View style={styles.userInfo}>
-          <Text style={styles.name}>{user?.nome || "Carregando..."}</Text>
-          <Text style={styles.email}>{user?.email || ""}</Text>
-          <Text style={styles.tel}>{user?.tel || ""}</Text>
+        <View style={styles.profileContainer}>
+          <View style={styles.initialsCircle}>
+            <Text style={styles.initialsText}>{getInitials(user?.nome)}</Text>
+          </View>
+          
+          <View style={styles.userInfo}>
+            <Text style={styles.name}>{user?.nome || "Carregando..."}</Text>
+            
+            {user?.email && (
+              <View style={styles.contactInfo}>
+                <Icon name="mail-outline" size={16} color="#fff" />
+                <Text style={styles.contactText} numberOfLines={1} ellipsizeMode="tail">
+                  {user.email}
+                </Text>
+              </View>
+            )}
+            
+            {user?.tel && (
+              <View style={styles.contactInfo}>
+                <Icon name="call-outline" size={16} color="#fff" />
+                <Text style={styles.contactText}>
+                  {user.tel}
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
 
-        <TouchableOpacity onPress={openModal}>
-          <View style={styles.menuIconContainer}>
-            <Icon name="menu" size={30} color="#fff" style={styles.menuIcon} />
-          </View>
+        <TouchableOpacity onPress={openModal} style={styles.menuButton}>
+          <Icon name="ellipsis-vertical" size={20} color="#fff" />
         </TouchableOpacity>
       </View>
 
+      {/* Modal de opções */}
       <Modal
-        animationType="none"
+        animationType="fade"
         transparent={true}
         visible={modalVisible}
         onRequestClose={closeModal}
       >
-        <View style={styles.modalOverlay}>
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1} 
+          onPressOut={closeModal}
+        >
           <Animated.View
-            style={[styles.modalContent, { opacity: modalAnim }]}
+            style={[styles.modalContent, { 
+              opacity: modalAnim,
+              transform: [{
+                translateY: modalAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [20, 0]
+                })
+              }]
+            }]}
           >
-            <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
-              <Text style={styles.menuText}>Terminar Sessão</Text>
-            </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={handleEditarProfile}>
+              <Icon name="create-outline" size={20} color="#555" />
               <Text style={styles.menuText}>Editar Perfil</Text>
             </TouchableOpacity>
+            
             <TouchableOpacity style={styles.menuItem} onPress={showAboutApp}>
-              <Text style={styles.menuText}>Sobre</Text>
+              <Icon name="information-circle-outline" size={20} color="#555" />
+              <Text style={styles.menuText}>Sobre o App</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={closeModal}
-            >
-              <Text style={styles.closeButtonText}>Fechar</Text>
+            
+            <View style={styles.divider} />
+            
+            <TouchableOpacity style={[styles.menuItem, styles.logoutItem]} onPress={handleLogout}>
+              <Icon name="log-out-outline" size={20} color="#e74c3c" />
+              <Text style={[styles.menuText, styles.logoutText]}>Terminar Sessão</Text>
             </TouchableOpacity>
           </Animated.View>
-        </View>
+        </TouchableOpacity>
       </Modal>
 
+      {/* Conteúdo principal */}
       {loading ? (
         <View style={styles.loadingContainer}>
-          <Text>Carregando...</Text>
+          <ActivityIndicator size="large" color="#3498db" />
         </View>
       ) : (
-        <FlatList
-          contentContainerStyle={styles.flatListContainer}
-          data={userProperties}
-          keyExtractor={(item) => item.id.toString()}
-          ListHeaderComponent={
-            <>
-              <Text style={styles.sectionTitle}>Meus Imóveis</Text>
-            </>
-          }
-          ListEmptyComponent={renderEmptyList}
-          renderItem={({ item }) => (
-            <View style={styles.listingCard}>
-              <View style={styles.fakeImage} />
-              <View style={styles.listingInfo}>
-                <Text style={styles.listingTitle}>{item.titulo || "Sem título"}</Text>
-                <Text style={styles.listingLocation}>{item.localizacao || "Localização não informada"}</Text>
-                <Text style={styles.listingType}>{item.tipo || "Tipo não informado"}</Text>
-                <Text style={styles.listingPrice}>{item.preco ? `Kz ${item.preco}` : "Preço não informado"}</Text>
+        <View style={styles.content}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Meus Imóveis</Text>
+            <TouchableOpacity style={styles.addButton}>
+              <Icon name="add" size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
+          
+          <FlatList
+            contentContainerStyle={styles.propertyList}
+            data={userProperties}
+            keyExtractor={(item) => item.id.toString()}
+            ListEmptyComponent={renderEmptyList}
+            showsVerticalScrollIndicator={false}
+            renderItem={({ item }) => (
+              <View style={styles.propertyCard}>
+                <View style={styles.propertyImagePlaceholder}>
+                  <Icon name="home" size={40} color="#3498db" />
+                </View>
                 
-                <View style={styles.actionsContainer}>
-                  <TouchableOpacity 
-                    style={styles.editButton}
-                    onPress={() => handleEditProperty(item)}
-                  >
-                    <Text style={styles.buttonText}>Editar</Text>
-                  </TouchableOpacity>
+                <View style={styles.propertyDetails}>
+                  <Text style={styles.propertyTitle} numberOfLines={1}>{item.titulo || "Sem título"}</Text>
                   
-                  <TouchableOpacity 
-                    style={styles.deleteButton}
-                    onPress={() => handleDeleteProperty(item.id)}
-                  >
-                    <Text style={styles.buttonText}>Eliminar</Text>
-                  </TouchableOpacity>
+                  <View style={styles.propertyMeta}>
+                    <View style={styles.propertyMetaItem}>
+                      <Icon name="location-outline" size={14} color="#666" />
+                      <Text style={styles.propertyMetaText}>{item.localizacao || "Local não informado"}</Text>
+                    </View>
+                    <View style={styles.propertyMetaItem}>
+                      <Icon name="pricetag-outline" size={14} color="#666" />
+                      <Text style={styles.propertyMetaText}>{item.preco ? `Kz ${item.preco}` : "Preço não informado"}</Text>
+                    </View>
+                    <View style={styles.propertyMetaItem}>
+                      <Icon name="business-outline" size={14} color="#666" />
+                      <Text style={styles.propertyMetaText}>{item.tipo || "Tipo não informado"}</Text>
+                    </View>
+                  </View>
+                  
+                  <View style={styles.propertyActions}>
+                    <TouchableOpacity 
+                      style={[styles.propertyActionButton, styles.editButton]}
+                      onPress={() => handleEditProperty(item)}
+                    >
+                      <Icon name="create-outline" size={16} color="#fff" />
+                      <Text style={styles.propertyActionText}>Editar</Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity 
+                      style={[styles.propertyActionButton, styles.deleteButton]}
+                      onPress={() => handleDeleteProperty(item.id)}
+                    >
+                      <Icon name="trash-outline" size={16} color="#fff" />
+                      <Text style={styles.propertyActionText}>Remover</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
-            </View>
-          )}
-        />
+            )}
+          />
+        </View>
       )}
     </SafeAreaView>
   );

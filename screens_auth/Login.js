@@ -28,7 +28,7 @@ export default function Login() {
     setLoading(true);
   
     try {
-      const response = await fetch('http://192.168.20.50/RESINGOLA-main/Backend/login.php', {
+      const response = await fetch('http://192.168.20.217/RESINGOLA-main/Backend/login.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -141,7 +141,7 @@ export default function Login() {
               borderRadius: (width * 0.35) / 2,
               marginTop: RFPercentage(5),
               borderWidth: 3,
-              borderColor: themeColors.secondary,
+              borderColor: themeColors.verde,
             }} 
           />
 
@@ -211,7 +211,7 @@ export default function Login() {
                 onPress={handleLogin}
                 disabled={loading}
                 style={{ 
-                  backgroundColor: loading ? '#ccc' : themeColors.secondary, 
+                  backgroundColor: loading ? '#ccc' : themeColors.verde, 
                   paddingVertical: RFPercentage(1.5), 
                   borderRadius: RFPercentage(1),
                   marginTop: RFPercentage(3),
@@ -232,7 +232,7 @@ export default function Login() {
                 ) : (
                   <Text 
                     style={{ 
-                      color: themeColors.dark, 
+                      color: themeColors.white, 
                       fontSize: RFValue(16), 
                       textAlign: 'center',
                       fontWeight: 'bold',
@@ -278,7 +278,7 @@ export default function Login() {
                   Não tem uma conta? 
                 </Text>
                 <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
-                  <Text style={{ color: themeColors.secondary, fontSize: RFValue(12), marginLeft: 5 }}>
+                  <Text style={{ color: themeColors.verde, fontSize: RFValue(12), marginLeft: 5 }}>
                     Criar conta
                   </Text>
                 </TouchableOpacity>

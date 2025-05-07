@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, Switch, ActivityIndicator, FlatList, Alert, ActionSheetIOS } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, Switch, ActivityIndicator, FlatList, Alert, ActionSheetIOS, Platform } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
@@ -7,7 +7,6 @@ import * as Location from 'expo-location';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import styles from '../styles/Upload';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Custom Radio Button Component
 const RadioButton = ({ selected, onPress, label }) => (
@@ -40,29 +39,23 @@ export default function Upload() {
   const [andares, setAndares] = useState('1'); // Valor padrão como string '1'
   const [garagem, setGaragem] = useState(false);
   const [varanda, setVaranda] = useState(false);
-  const [location, setLocation] = useState(null);
+  const [location, setLocation] = useState({
+    address: '',
+    coordinates: {
+      lat: null,
+      lng: null
+    }
+  });
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [price, setPrice] = useState('');
   const navigation = useNavigation();
   const [errors, setErrors] = useState({});
+  const [suggestions, setSuggestions] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   const isFormValid = () => {
     const newErrors = {};
-  
-    if (images.length === 0) newErrors.images = true;
-    if (!houseSize || isNaN(houseSize) || parseFloat(houseSize) <= 0) newErrors.houseSize = true;
-    if (!status) newErrors.status = true;
-    if (!typeResi) newErrors.typeResi = true;
     
-    // Validações condicionais
-    if (typeResi === 'Apartamento') {
-      if (!typology) newErrors.typology = true;
-      if (!livingRoomCount) newErrors.livingRoomCount = true;
-      if (!bathroomCount) newErrors.bathroomCount = true;
-      if (!kitchenCount) newErrors.kitchenCount = true;
-    }
-    
-
     // Validações básicas que aplicam a todos os tipos
     if (images.length === 0) {
       Alert.alert("Erro", "Adicione pelo menos uma imagem");
@@ -103,9 +96,9 @@ export default function Upload() {
         return false;
       }
     } 
-    else if (typeResi === 'Vivenda') {
+    else if (typeResi === 'Vivenda' || typeResi === 'Moradia') {
       if (!typology) {
-        Alert.alert("Erro", "Selecione a tipologia da vivenda (T2, T3, T4)");
+        Alert.alert("Erro", `Selecione a tipologia da ${typeResi} (T2, T3, T4)`);
         return false;
       }
       if (!livingRoomCount) {
@@ -124,37 +117,10 @@ export default function Upload() {
         Alert.alert("Erro", "Selecione o número de andares");
         return false;
       }
-    } 
-    else if (typeResi === 'Moradia') {
-      if (!typology) {
-        Alert.alert("Erro", "Selecione a tipologia da moradia (T2, T3, T4)");
-        return false;
-      }
-      if (!livingRoomCount) {
-        Alert.alert("Erro", "Selecione o número de salas");
-        return false;
-      }
-      if (!bathroomCount) {
-        Alert.alert("Erro", "Selecione o número de banheiros");
-        return false;
-      }
-      if (!kitchenCount) {
-        Alert.alert("Erro", "Selecione o número de cozinhas");
-        return false;
-      }
-      if (!andares) {
-        Alert.alert("Erro", "Selecione o número de andares");
-        return false;
-      }
-    }
-
-    if (typeResi === 'Vivenda' && !andares) {
-      newErrors.andares = 'Selecione o número de andares';
     }
   
-    // Validações comuns a todos os tipos
-    if (!location || location.trim() === "") {
-      Alert.alert("Erro", "Localização é obrigatória");
+    if (!location.address || !location.coordinates || !location.coordinates.lat || !location.coordinates.lng) {
+      Alert.alert("Erro", "Selecione uma localização válida das sugestões");
       return false;
     }
   
@@ -163,60 +129,53 @@ export default function Upload() {
       return false;
     }
   
-      if (!location || location.trim() === "") newErrors.location = true;
-      if (!price || isNaN(price) || parseFloat(price) <= 0) newErrors.price = true;
+    return true;
+  };
 
-      setErrors(newErrors);
-      return Object.keys(newErrors).length === 0;
-    };
+const pickImage = async () => {
+  const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  if (status !== 'granted') {
+    alert('Permissão para acessar a galeria foi negada!');
+    return;
+  }
 
-  const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      alert('Permissão para acessar a galeria foi negada!');
-      return;
-    }
-  
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-      allowsMultipleSelection: true,
-    });
-  
-    if (!result.canceled && result.assets) {
-      const validImages = [];
+  let result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    allowsEditing: false, // Removido ou definido como false quando allowsMultipleSelection=true
+    aspect: [4, 3],
+    quality: 1,
+    allowsMultipleSelection: true, // Mantenha true para seleção múltipla
+  });
+
+  if (!result.canceled && result.assets) {
+    const validImages = [];
     
-      for (let asset of result.assets) {
-        try {
-          // 1. Copia a imagem para um local permanente
-          const newPath = `${FileSystem.documentDirectory}${Date.now()}.jpg`;
-          await FileSystem.copyAsync({
-            from: asset.uri,
-            to: newPath,
-          });
-    
-          // 2. Verifica o tamanho (se necessário)
-          const fileInfo = await FileSystem.getInfoAsync(newPath);
-          if (fileInfo.size > 5 * 1024 * 1024) {
-            Alert.alert("Erro", "Imagem excede 5MB e foi ignorada.");
-            continue;
-          }
-    
-          // 3. Armazena o NOVO caminho (persistente)
-          validImages.push(newPath);
-        } catch (error) {
-          console.error("Erro ao salvar imagem:", error);
+    for (let asset of result.assets) {
+      try {
+        const newPath = `${FileSystem.documentDirectory}${Date.now()}.jpg`;
+        await FileSystem.copyAsync({
+          from: asset.uri,
+          to: newPath,
+        });
+        
+        const fileInfo = await FileSystem.getInfoAsync(newPath);
+        if (fileInfo.size > 5 * 1024 * 1024) {
+          Alert.alert("Erro", "Imagem excede 5MB e foi ignorada.");
           continue;
         }
-      }
-    
-      if (validImages.length > 0) {
-        setImages(prev => [...prev, ...validImages]);
+        
+        validImages.push(newPath);
+      } catch (error) {
+        console.error("Erro ao salvar imagem:", error);
+        continue;
       }
     }
-  };
+    
+    if (validImages.length > 0) {
+      setImages(prev => [...prev, ...validImages]);
+    }
+  }
+};
   // Função para tirar foto  
 
   const takePhoto = async () => {
@@ -253,12 +212,15 @@ export default function Upload() {
 
   const uploadImage = async (uri) => {
     try {
-      // Verificar conexão antes de tentar o upload
-      const isConnected = await checkNetworkConnection();
-      if (!isConnected) {
-        throw new Error('Sem conexão com a internet');
+      console.log('Preparando upload da imagem:', uri);
+      
+      // Verifica se o arquivo existe
+      const fileInfo = await FileSystem.getInfoAsync(uri);
+      if (!fileInfo.exists) {
+        throw new Error('Arquivo de imagem não encontrado');
       }
   
+      // Cria o FormData
       const formData = new FormData();
       formData.append('image', {
         uri: uri,
@@ -266,28 +228,26 @@ export default function Upload() {
         name: `imovel_${Date.now()}.jpg`
       });
   
-      const response = await fetch('http://192.168.20.50/RESINGOLA-main/Backend/uploads/upload_image.php', {
+      console.log('Enviando imagem para o servidor...');
+      const response = await fetch('http://192.168.20.217/RESINGOLA-main/Backend/uploads/upload_image.php', {
         method: 'POST',
         body: formData,
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'multipart/form-data',
         },
-        timeout: 30000, // 30 segundos de timeout
       });
   
-      // Verificar se a resposta está OK
+      console.log('Resposta do upload:', response.status);
+      
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Erro no upload:', errorText);
         throw new Error(`Erro HTTP: ${response.status}`);
       }
   
-      const responseText = await response.text();
-      
-      if (!responseText) {
-        throw new Error('Resposta do servidor vazia');
-      }
-  
-      const result = JSON.parse(responseText);
+      const result = await response.json();
+      console.log('Resultado do upload:', result);
       
       if (!result.status || result.status !== 'success') {
         throw new Error(result.message || 'Upload falhou');
@@ -304,7 +264,7 @@ export default function Upload() {
   // Função para verificar conexão
   const checkNetworkConnection = async () => {
     try {
-      const response = await fetch('http://192.168.20.50', {
+      const response = await fetch('http://192.168.20.217', {
         method: 'HEAD',
         timeout: 5000,
       });
@@ -319,109 +279,114 @@ export default function Upload() {
     let { status } = await Location.requestForegroundPermissionsAsync();
     
     if (status !== 'granted') {
-      alert('Permissão para acessar localização foi negada!');
+      alert('Permissão negada!');
       setIsLoadingLocation(false);
       return;
     }
-
+  
     try {
       let { coords } = await Location.getCurrentPositionAsync({});
       let address = await Location.reverseGeocodeAsync(coords);
-
-      if (address.length > 0) {
-        const { city, district } = address[0];
-        setLocation(`${city || 'Cidade desconhecida'}, ${district || 'Bairro desconhecido'}`);
-      } else {
-        alert('Não foi possível obter o endereço.');
-      }
+      
+      setLocation({
+        address: address[0] ? `${address[0].city}, ${address[0].district}` : 'Local desconhecido',
+        coordinates: {
+          lat: coords.latitude,
+          lng: coords.longitude
+        }
+      });
     } catch (error) {
-      console.error('Erro ao obter localização:', error);
-      alert('Erro ao obter localização');
+      console.error(error);
     }
     setIsLoadingLocation(false);
   };
 
   const handleSubmit = async () => {
-    if (!isFormValid()) return;
+    console.log('Iniciando processo de cadastro...');
   
+    // 1. Validação básica
+    if (!isFormValid()) {
+      console.log('Cadastro bloqueado: formulário inválido');
+      return;
+    }
+  
+    // 2. Preparação dos dados
+    const residenceData = {
+      images: images,
+      houseSize: houseSize,
+      status: status,
+      typeResi: typeResi,
+      typology: typology,
+      livingRoomCount: livingRoomCount,
+      kitchenCount: kitchenCount,
+      hasWater: hasWater,
+      hasElectricity: hasElectricity,
+      bathroomCount: bathroomCount,
+      quintal: quintal,
+      andares: andares,
+      garagem: garagem,
+      varanda: varanda,
+      location: location.address,
+      latitude: location.coordinates.lat,
+      longitude: location.coordinates.lng,
+      price: price
+    };
+  
+    console.log('Dados preparados:', residenceData);
+  
+    // 3. Envio para o servidor
     try {
-      // 1. Upload de imagens
-      const uploadedImages = await Promise.all(
-        images.map(async (uri) => {
-          try {
-            const imageUrl = await uploadImage(uri);
-            // Garante que é uma URL completa
-            if (!imageUrl.startsWith('http')) {
-              return `http://192.168.20.50/RESINGOLA-main/Backend/uploads/${imageUrl}`;
-            }
-            return imageUrl;
-          } catch (error) {
-            console.error('Erro no upload:', error);
-            throw new Error('Falha ao enviar imagens');
-          }
-        })
-      );
-  
-      // 2. Preparar dados
-      const residenceData = {
-        imagem: uploadedImages[0],
-        images: JSON.stringify(uploadedImages),
-        houseSize: parseFloat(houseSize),
-        status: status,
-        typeResi: typeResi,
-        typology: typology,
-        livingRoomCount: parseInt(livingRoomCount) || 0,
-        kitchenCount: parseInt(kitchenCount) || 1,
-        hasWater: hasWater,
-        hasElectricity: hasElectricity,
-        bathroomCount: parseInt(bathroomCount) || 1,
-        quintal: quintal,
-        andares: parseInt(andares) || 1,
-        garagem: garagem,
-        varanda: varanda,
-        location: location,
-        price: parseFloat(price),
-        createdAt: new Date().toISOString()
-      };
-  
-      // 3. Enviar para o servidor
-      const response = await fetch('http://192.168.20.50/RESINGOLA-main/Backend/conect.php', {
+      console.log('Iniciando envio para o servidor...');
+      
+      // Verifique se o endpoint está correto
+      const response = await fetch('http://192.168.20.217/RESINGOLA-main/Backend/conect.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
         body: JSON.stringify(residenceData)
       });
   
-      // Verifique primeiro o status da resposta
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Resposta do servidor:', errorText);
-      throw new Error(`Erro HTTP ${response.status}`);
-    }
-
-    // Tente parsear como JSON
-    let result;
-    try {
-      result = await response.json();
-    } catch (jsonError) {
-      const responseText = await response.text();
-      console.error('Falha ao parsear JSON:', responseText);
-      throw new Error('Resposta do servidor não é JSON válido');
-    }
-
-    if (!result.status || result.status !== 'success') {
-      throw new Error(result.message || 'Erro no servidor');
-    }
+      console.log('Resposta recebida, status:', response.status);
   
-      // Sucesso
-      Alert.alert('Sucesso', 'Imóvel cadastrado com sucesso!');
+      // Verifique se a resposta é JSON válido
+      const text = await response.text();
+      let result;
+      try {
+        result = JSON.parse(text);
+      } catch (e) {
+        throw new Error(`Resposta do servidor não é JSON válido: ${text}`);
+      }
+  
+      console.log('Resposta completa:', result);
+  
+      if (!response.ok || result.status !== 'success') {
+        const errorMsg = result.message || `Erro HTTP ${response.status}`;
+        console.error('Erro no servidor:', errorMsg);
+        throw new Error(errorMsg);
+      }
+  
+      // 5. Sucesso
+      Alert.alert(
+        'Cadastro Concluído', 
+        'Imóvel registrado com sucesso!',
+        [{ text: 'OK', onPress: () => navigation.navigate('Home') }]
+      );
+      
       resetForm();
-      navigation.navigate('Home');
   
     } catch (error) {
-      console.error('Erro completo:', error);
-      Alert.alert('Erro', error.message || 'Erro ao cadastrar imóvel');
+      console.error('Falha no cadastro:', {
+        error: error.message,
+        stack: error.stack
+      });
+  
+      Alert.alert(
+        'Erro no Cadastro',
+        `Ocorreu um erro ao cadastrar: ${error.message}`,
+        [{ text: 'Entendi' }]
+      );
     }
   };
 
@@ -437,18 +402,140 @@ export default function Upload() {
     setHasElectricity(false);
     setBathroomCount('');
     setQuintal(false);
-    setAndares('');
+    setAndares('1'); // Mantém como string
     setGaragem(false);
     setVaranda(false);
-    setLocation(null);
+    // Alterado de null para objeto vazio
+    setLocation({
+      address: '',
+      coordinates: {
+        lat: null,
+        lng: null
+      }
+    });
     setPrice('');
   };
 
+  const showImagePickerOptions = () => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Tirar Foto', 'Escolher da Galeria', 'Cancelar'],
+          cancelButtonIndex: 2,
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 0) takePhoto();
+          if (buttonIndex === 1) pickImage();
+        }
+      );
+    } else {
+      // Para Android, mostramos um Alert com as opções
+      Alert.alert(
+        'Selecionar imagem',
+        'Escolha uma opção',
+        [
+          { text: 'Tirar Foto', onPress: () => takePhoto() },
+          { text: 'Escolher da Galeria', onPress: () => pickImage() },
+          { text: 'Cancelar', style: 'cancel' },
+        ],
+        { cancelable: true }
+      );
+    }
+  };
+
+  const searchLocations = async (query) => {
+    if (query.length < 3) {
+      setSuggestions([]);
+      return;
+    }
+  
+    try {
+      setIsSearching(true);
+      const apiKey = '45f8077e-cd8f-4919-be26-31ce1a691183';
+      const response = await fetch(
+        `https://geocode-maps.yandex.ru/1.x/?apikey=${apiKey}&format=json&geocode=${encodeURIComponent(query + ', Angola')}&lang=pt`
+      );
+      
+      const data = await response.json();
+      const features = data?.response?.GeoObjectCollection?.featureMember || [];
+      
+      const results = features.map(feature => {
+        const components = feature.GeoObject.metaDataProperty?.GeocoderMetaData?.Address?.Components || [];
+        const city = components.find(c => c.kind === 'locality')?.name || '';
+        const district = components.find(c => c.kind === 'district')?.name || '';
+        const province = components.find(c => c.kind === 'province')?.name || '';
+        
+        let displayName = '';
+        
+        if (city && district) {
+          displayName = `${city}, ${district}`;
+        } else if (district && province) {
+          displayName = `${province}, ${district}`;
+        } else {
+          displayName = feature.GeoObject.name || feature.GeoObject.description || '';
+        }
+        
+        displayName = displayName
+          .replace('Município do ', '')
+          .replace('Município da ', '')
+          .replace('Província do ', '')
+          .replace('Província da ', '')
+          .replace('Province of ', '');
+        
+        // Extrai as coordenadas (Yandex usa longitude primeiro)
+        const [lng, lat] = feature.GeoObject.Point.pos.split(' ').map(Number);
+        
+        return {
+          displayName: displayName,
+          fullAddress: feature.GeoObject.description || '',
+          coordinates: { lat, lng } // Armazena como objeto com lat e lng
+        };
+      })
+      .filter(item => item.displayName)
+      .filter((item, index, self) =>
+        index === self.findIndex(i => i.displayName === item.displayName)
+      )
+      .slice(0, 8);
+      
+      setSuggestions(results);
+      
+    } catch (error) {
+      console.error('Erro na busca de localização:', error);
+      setSuggestions([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleSelectSuggestion = (suggestion) => {
+    setLocation({
+      address: suggestion.displayName,
+      coordinates: suggestion.coordinates
+    });
+    setSuggestions([]); // Fecha a lista de sugestões
+  };
+  
   return (
+
+    <View style={styles.screenContainer}>
+    {/* Cabeçalho Fixo */}
+    <View style={styles.header}>
+      <TouchableOpacity 
+        style={styles.backButton} 
+        onPress={() => navigation.goBack()}
+      >
+        <MaterialIcons name="arrow-back" size={24} color="#000" />
+      </TouchableOpacity>
+      <Text style={styles.headerTitle}>Cadastrar Imóvel</Text>
+      <View style={styles.headerRight} />
+    </View>
+
+    {/* Conteúdo Rolável */}
     
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
-        {images.length > 0 ? (
+      {images.length > 0 ? (
+        <View>
           <FlatList
             horizontal
             data={images}
@@ -458,6 +545,7 @@ export default function Upload() {
                 <Image 
                   source={{ uri: item }} 
                   style={styles.image}
+                  resizeMode="cover"
                   onError={(e) => {
                     console.log('Erro ao carregar imagem:', e.nativeEvent.error);
                     removeImage(index);
@@ -469,22 +557,36 @@ export default function Upload() {
                 >
                   <MaterialIcons name="close" size={20} color="white" />
                 </TouchableOpacity>
+                <Text style={styles.imageNumberText}>{index + 1}/{images.length}</Text>
               </View>
             )}
             contentContainerStyle={styles.imagesList}
+            showsHorizontalScrollIndicator={false}
           />
-        ) : (
-          <TouchableOpacity style={styles.cover} onPress={pickImage}>
-            <View style={styles.coverContent}>
-              <MaterialIcons name="add-a-photo" size={40} color="#666" />
-              <Text style={styles.coverText}>Adicione imagens</Text>
+          <TouchableOpacity 
+            style={styles.addMoreButton}
+            onPress={showImagePickerOptions}
+          >
+            <MaterialIcons name="add" size={24} color="#000" />
+            <Text style={styles.addMoreButtonText}>Adicionar mais imagens</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={styles.imageUploadContainer}>
+          <TouchableOpacity 
+            style={styles.uploadButton} 
+            onPress={showImagePickerOptions}
+          >
+            <View style={styles.uploadContent}>
+              <MaterialIcons name="cloud-upload" size={40} color="#1A7526" />
+              <Text style={styles.uploadText}>Adicionar Imagens</Text>
+              <Text style={styles.uploadSubText}>Toque para selecionar ou tirar foto</Text>
             </View>
           </TouchableOpacity>
-        )}
+        </View>
+      )}
 
-        <Text style={styles.photoOptionText} onPress={takePhoto}>
-          Ou tire uma foto
-        </Text>
+      
 
         <View style={styles.form}>
           {/* Campos básicos que sempre aparecem */}
@@ -644,17 +746,46 @@ export default function Upload() {
                   </View>
                 </View>
 
+                {/* Substitua o campo de localização por este bloco */}
                 <View style={styles.formGroup}>
                     <Text style={styles.label}>Localização*</Text>
-                    <TouchableOpacity style={styles.locationButton} onPress={getLocation}>
-                      {isLoadingLocation ? (
-                        <ActivityIndicator color="#1A7526" />
-                      ) : (
-                        <Text style={styles.locationButtonText}>
-                          {location || 'Obter Localização'}
-                        </Text>
+                    <View style={styles.locationInputContainer}>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="Ex: Luanda, Talatona"
+                        value={location.address} // Mostra apenas o endereço textual
+                        onChangeText={(text) => {
+                          setLocation(prev => ({...prev, address: text}));
+                          searchLocations(text);
+                        }}
+                      />
+                      
+                      {/* Adicione o indicador de carregamento AQUI */}
+                      {isSearching && (
+                        <View style={styles.loadingContainer}>
+                          <ActivityIndicator size="small" color="#1A7526" />
+                          <Text style={styles.loadingText}>Buscando localizações em Angola...</Text>
+                        </View>
                       )}
-                    </TouchableOpacity>
+                      
+                      {suggestions.length > 0 && !isSearching && (
+                          <ScrollView 
+                              style={styles.suggestionsContainer}
+                              nestedScrollEnabled={true}
+                              keyboardShouldPersistTaps="always"
+                            >
+                            {suggestions.map((item, index) => (
+                              <TouchableOpacity 
+                                  key={index.toString()}
+                                  style={styles.suggestionItem}
+                                  onPress={() => handleSelectSuggestion(item)}
+                                >
+                                <Text>{item.displayName}</Text>
+                              </TouchableOpacity>
+                            ))}
+                          </ScrollView>
+                      )}
+                    </View>
                 </View>
 
                 <View style={styles.formGroup}>
@@ -710,7 +841,7 @@ export default function Upload() {
                     <RadioButton
                       selected={livingRoomCount === '3'}
                       onPress={() => setLivingRoomCount('3')}
-                      label="3+"
+                      label="3"
                     />
                   </View>
                 </View>
@@ -731,7 +862,7 @@ export default function Upload() {
                     <RadioButton
                       selected={bathroomCount === '3'}
                       onPress={() => setBathroomCount('3')}
-                      label="3+"
+                      label="3"
                     />
                   </View>
                 </View>
@@ -753,7 +884,7 @@ export default function Upload() {
                 </View>
 
                 <View style={styles.formGroup}>
-                  <Text style={styles.label}>Jardim</Text>
+                  <Text style={styles.label}>Quintal</Text>
                   <View style={styles.radioContainer}>
                     <RadioButton
                       selected={quintal}
@@ -789,6 +920,11 @@ export default function Upload() {
                   Número de Andares*
                 </Text>
                 <View style={styles.radioContainer}>
+                  <RadioButton
+                    label="Nenhum"
+                    selected={andares === '0'}
+                    onPress={() => setAndares('0')}
+                  />
                   <RadioButton
                     selected={andares === '1'}
                     onPress={() => setAndares('1')}
@@ -830,20 +966,48 @@ export default function Upload() {
                   </View>
                 </View>
              
-
-                  {/* Campos comuns a todos os tipos */}
-                  <View style={styles.formGroup}>
+                {/* Substitua o campo de localização por este bloco */}
+                <View style={styles.formGroup}>
                     <Text style={styles.label}>Localização*</Text>
-                    <TouchableOpacity style={styles.locationButton} onPress={getLocation}>
-                      {isLoadingLocation ? (
-                        <ActivityIndicator color="#1A7526" />
-                      ) : (
-                        <Text style={styles.locationButtonText}>
-                          {location || 'Obter Localização'}
-                        </Text>
+                    <View style={styles.locationInputContainer}>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Ex: Luanda, Talatona"
+                        value={location.address} // Mostra apenas o endereço textual
+                        onChangeText={(text) => {
+                          setLocation(prev => ({...prev, address: text}));
+                          searchLocations(text);
+                        }}
+                      />
+                      
+                      {/* Adicione o indicador de carregamento AQUI */}
+                      {isSearching && (
+                        <View style={styles.loadingContainer}>
+                          <ActivityIndicator size="small" color="#1A7526" />
+                          <Text style={styles.loadingText}>Buscando localizações em Angola...</Text>
+                        </View>
                       )}
-                    </TouchableOpacity>
-                  </View>
+                      
+                      {suggestions.length > 0 && !isSearching && (
+                          <ScrollView 
+                              style={styles.suggestionsContainer}
+                              nestedScrollEnabled={true}
+                              keyboardShouldPersistTaps="always"
+                            >
+                            {suggestions.map((item, index) => (
+                              <TouchableOpacity 
+                                  key={index.toString()}
+                                  style={styles.suggestionItem}
+                                  onPress={() => handleSelectSuggestion(item)}
+                                >
+                                <Text>{item.displayName}</Text>
+                              </TouchableOpacity>
+                            ))}
+                          </ScrollView>
+                      )}
+                    </View>
+                </View>
+                  
 
                   <View style={styles.formGroup}>
                     <Text style={styles.label}>Preço (kz)*</Text>
@@ -875,5 +1039,6 @@ export default function Upload() {
         </View>
       </View>
     </ScrollView>
+    </View>
   );
 }

@@ -10,7 +10,7 @@ import styles from '../styles/Home';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
-const baseImageUrl = "http://192.168.20.50/RESINGOLA-main/uploads/";
+const baseImageUrl = "http://192.168.20.217/RESINGOLA-main/uploads/";
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -93,7 +93,7 @@ const Home = ({ route }) => {
 
       // 2. Buscar do servidor
       try {
-        const response = await fetch('http://192.168.20.50/RESINGOLA-main/Backend/listar_residences.php');
+        const response = await fetch('http://192.168.20.217/RESINGOLA-main/Backend/listar_residences.php');
         const result = await response.json();
         if (result.status === 'success') {
           serverResidences = result.data || [];
@@ -190,7 +190,7 @@ const Home = ({ route }) => {
           text: 'Sim', 
           onPress: async () => {
             try {
-              const response = await fetch('http://192.168.20.50/RESINGOLA-main/Backend/deletar.php', {
+              const response = await fetch('http://192.168.20.217/RESINGOLA-main/Backend/deletar.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id: cardId })
@@ -214,6 +214,45 @@ const Home = ({ route }) => {
       ]
     );
   };  
+
+  // Adicione esta função em algum arquivo de utilitários ou no topo do seu componente
+  const formatLocation = (locationString) => {
+    if (!locationString) return 'Local não especificado';
+    
+    // Se já estiver no formato desejado (Luanda, Cazenga)
+    if (typeof locationString === 'string' && !locationString.startsWith('{')) {
+      return locationString
+        .replace('Província ', '')
+        .replace('Município ', '');
+    }
+    
+    try {
+      // Tenta parsear apenas se for um JSON válido
+      if (typeof locationString === 'string' && locationString.startsWith('{')) {
+        const location = JSON.parse(locationString);
+        let address = location.address || locationString;
+        
+        return address
+          .replace('Província ', '')
+          .replace('Município ', '');
+      }
+      
+      // Se for um objeto de localização diretamente
+      if (typeof locationString === 'object' && locationString.address) {
+        return locationString.address
+          .replace('Província ', '')
+          .replace('Município ', '');
+      }
+      
+      return locationString;
+      
+    } catch (e) {
+      console.error('Erro ao formatar localização:', e);
+      return typeof locationString === 'string' ? 
+        locationString.replace('Província ', '').replace('Município ', '') : 
+        'Local não especificado';
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -306,7 +345,7 @@ const Home = ({ route }) => {
 
                   <View style={styles.cardInfo}>
                     <Text style={styles.cardInfoTitle}>{residence.typology}</Text>
-                    <Text style={styles.cardInfoSubTitle}>{residence.location}</Text>
+                    <Text style={styles.cardInfoSubTitle}>{formatLocation(residence.location || '')}</Text>
                   </View>
                 </Pressable>
                 <View style={styles.cardInfoBuy}>

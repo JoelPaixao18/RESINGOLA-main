@@ -12,21 +12,21 @@ export default function Welcome() {
         <Text style={welcomeStyles.title}>Vamos Começar!</Text>
       </View>
         <View style={welcomeStyles.inner}>
-            <Image source={require('../assets/welcome.jpeg')} 
+            <Image source={require('../assets/welcome.png')} 
             style={welcomeStyles.image} />
         </View>
         <View className="space-y-4">
             <TouchableOpacity onPress={() => navigation.navigate('SignUp')}
                 style={{ 
-                    backgroundColor: themeColors.secondary, 
+                    backgroundColor: themeColors.verde, 
                     padding: 6, 
                     borderRadius: 8, 
                     marginVertical: 25,
                     width: '80%', 
                     alignSelf: 'center' }}>
                 <Text 
-                    style={{ color: themeColors.dark, fontSize: 18, textAlign: 'center' }}>
-                    Signup
+                    style={{ color: themeColors.white, fontSize: 18, textAlign: 'center' }}>
+                    Sign up
                 </Text>
             </TouchableOpacity>
             <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
@@ -37,7 +37,7 @@ export default function Welcome() {
                 <TouchableOpacity onPress={() => navigation.navigate('Login')}
                     style={{ marginLeft: 1,marginVertical: 20 }}>
                     <Text 
-                        style={{ color: themeColors.secondary, fontSize: 15 }}>
+                        style={{ color: themeColors.verde, fontSize: 15 }}>
                             Login
                     </Text>
                 </TouchableOpacity>

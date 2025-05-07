@@ -4,17 +4,39 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST");
 header("Access-Control-Allow-Headers: Content-Type");
 
-require_once __DIR__ . '/../Backend/db.php'; // Caminho corrigido
+// Debug: Registrar o raw input
+file_put_contents('input.log', file_get_contents('php://input'));
+
+require_once __DIR__ . '/../Backend/db.php';
+
+// Adicione esta função no início do arquivo
+function formatLocation($address) {
+    // Remove "Província" e "Município"
+    $formatted = str_replace(['Província ', 'Município '], '', $address);
+    
+    // Remove qualquer conteúdo entre parênteses (se houver)
+    $formatted = preg_replace('/\(.*?\)/', '', $formatted);
+    
+    // Remove espaços extras e vírgulas desnecessárias
+    $formatted = trim($formatted, ', ');
+    
+    return $formatted;
+}
 
 try {
     $json = file_get_contents('php://input');
     $data = json_decode($json, true);
+
+        // Verificação extra do JSON
+        if (empty($json)) {
+            throw new Exception('Dados vazios recebidos');
+        }
     
     if (json_last_error() !== JSON_ERROR_NONE) {
         throw new Exception('JSON inválido: ' . json_last_error_msg());
     }
 
-    // Validações
+    // Validações básicas
     $requiredFields = ['images', 'houseSize', 'status', 'typeResi', 'typology', 'location', 'price'];
     foreach ($requiredFields as $field) {
         if (empty($data[$field])) {
@@ -22,8 +44,22 @@ try {
         }
     }
 
-    // Converte o array de imagens para string JSON
-    $images = json_encode($data['images']); // Corrige o erro "Array to string conversion"
+    // Processamento das imagens
+    $images = json_encode($data['images']);
+    
+
+    // No seu código, antes de inserir no banco:
+    $formattedLocation = formatLocation($data['location']);
+    $locationData = [
+        'address' => $formattedLocation, // Usa a versão formatada
+        'coordinates' => [
+            'lat' => $data['latitude'] ?? null,
+            'lng' => $data['longitude'] ?? null
+        ]
+        ];
+    $location = json_encode($locationData);
+
+    // Preparação dos outros campos
     $houseSize = $data['houseSize'];
     $status = $data['status'];
     $typeResi = $data['typeResi'];
@@ -37,7 +73,6 @@ try {
     $andares = $data['andares'] ?? 1;
     $garagem = $data['garagem'] ?? false;
     $varanda = $data['varanda'] ?? false;
-    $location = $data['location'];
     $price = $data['price'];
 
     // Query SQL
@@ -45,12 +80,12 @@ try {
         images, houseSize, status, typeResi, typology,
         livingRoomCount, kitchenCount, hasWater, hasElectricity,
         bathroomCount, quintal, andares, garagem, varanda,
-        location, price
+        location, latitude, longitude, price
     ) VALUES (
         :images, :houseSize, :status, :typeResi, :typology,
         :livingRoomCount, :kitchenCount, :hasWater, :hasElectricity,
         :bathroomCount, :quintal, :andares, :garagem, :varanda,
-        :location, :price
+        :location, :latitude, :longitude, :price
     )";
 
     $stmt = $pdo->prepare($sql);
@@ -71,13 +106,15 @@ try {
     $stmt->bindParam(':garagem', $garagem, PDO::PARAM_BOOL);
     $stmt->bindParam(':varanda', $varanda, PDO::PARAM_BOOL);
     $stmt->bindParam(':location', $location);
+    $stmt->bindParam(':latitude', $data['latitude']);
+    $stmt->bindParam(':longitude', $data['longitude']);
     $stmt->bindParam(':price', $price);
 
     if ($stmt->execute()) {
         echo json_encode([
             'status' => 'success',
             'message' => 'Imóvel cadastrado com sucesso',
-            'id' => $pdo->lastInsertId() // Corrigido: usa $pdo em vez de $conn
+            'id' => $pdo->lastInsertId()
         ]);
     } else {
         throw new Exception('Erro ao executar a query: ' . implode(', ', $stmt->errorInfo()));

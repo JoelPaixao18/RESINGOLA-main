@@ -1,100 +1,194 @@
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, View, TextInput, Text, Dimensions } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import { SafeAreaView, View, Text, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
+import { WebView } from 'react-native-webview';
 import * as Location from 'expo-location';
 import styles from '../styles/Map';
-import { MagnifyingGlass } from 'phosphor-react-native';
 
 function Map() {
   const [location, setLocation] = useState(null);
   const [address, setAddress] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [properties, setProperties] = useState([]); // Novo estado para armazenar os imóveis
 
-  useEffect(() => {
-    const getLocation = async () => {
+  const fetchProperties = async () => {
+    try {
+      const response = await fetch('http://192.168.20.217/RESINGOLA-main/Backend/listar_residences.php');
+      const result = await response.json();
+      
+      if (result.status === 'success') {
+        const processedProperties = result.data.map(property => {
+          // Extrai o endereço (suporta JSON string ou objeto)
+          let address = '';
+          try {
+            const location = typeof property.location === 'string' ? 
+                           JSON.parse(property.location) : 
+                           property.location;
+            address = location?.address || property.address || 'Endereço não disponível';
+          } catch {
+            address = property.address || 'Endereço não disponível';
+          }
+          
+          return {
+            ...property,
+            address: address.replace('Província ', '').replace('Município ', ''),
+            coordinates: [
+              parseFloat(property.latitude) || 0,
+              parseFloat(property.longitude) || 0
+            ]
+          };
+        });
+        
+        setProperties(processedProperties);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar imóveis:', error);
+    }
+  };
+
+  const getLocation = async () => {
+    setLoading(true);
+    setErrorMsg(null);
+    try {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        setErrorMsg('Permissão de localização negada!');
+        const msg = 'Permissão de localização negada!';
+        setErrorMsg(msg);
+        Alert.alert('Erro de Permissão', msg);
+        setLoading(false);
         return;
       }
 
-      try {
-        let currentLocation = await Location.getCurrentPositionAsync({});
-        setLocation(currentLocation.coords);
+      let currentLocation = await Location.getCurrentPositionAsync({});
+      setLocation(currentLocation.coords);
 
-        const geocode = await Location.reverseGeocodeAsync({
-          latitude: currentLocation.coords.latitude,
-          longitude: currentLocation.coords.longitude,
-        });
+      const geocode = await Location.reverseGeocodeAsync({
+        latitude: currentLocation.coords.latitude,
+        longitude: currentLocation.coords.longitude,
+      });
 
-        if (geocode.length > 0) {
-          const locationAddress = geocode[0];
-          setAddress(`${locationAddress.name}, ${locationAddress.city}, ${locationAddress.region}`);
-        } else {
-          setAddress('Endereço não encontrado');
-        }
-      } catch (error) {
-        setErrorMsg('Erro ao obter a localização');
-        console.error(error);
+      if (geocode.length > 0) {
+        const loc = geocode[0];
+        setAddress(`${loc.name}, ${loc.city}, ${loc.region}`);
+      } else {
+        setAddress('Endereço não encontrado');
       }
-    };
+    } catch (error) {
+      const msg = 'Erro ao obter a localização. Verifique sua internet ou tente novamente.';
+      setErrorMsg(msg);
+      Alert.alert('Erro de Localização', msg);
+      console.error(error);
+    }
+    setLoading(false);
+  };
 
+  useEffect(() => {
     getLocation();
+    fetchProperties(); // Adicione esta linha
+    console.log(properties)
   }, []);
 
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#0000ff" />
+        <Text>Carregando localização...</Text>
+      </SafeAreaView>
+    );
+  }
+
   if (errorMsg) {
-    return <Text>{errorMsg}</Text>;
+    return (
+      <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{ marginBottom: 10, color: 'red', textAlign: 'center' }}>{errorMsg}</Text>
+        <TouchableOpacity onPress={getLocation} style={{ padding: 10, backgroundColor: '#007AFF', borderRadius: 8 }}>
+          <Text style={{ color: '#fff' }}>Tentar novamente</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
   }
 
-  if (!location) {
-    return <Text style={styles.waitMapText}>Carregando localização...</Text>;
-  }
-
-  const locations = [
-    { id: 1, latitude: 51.505, longitude: -0.09, title: 'Local 1', description: 'Descrição do Local 1' },
-    { id: 2, latitude: 51.515, longitude: -0.1, title: 'Local 2', description: 'Descrição do Local 2' },
-    { id: 3, latitude: 51.525, longitude: -0.11, title: 'Local 3', description: 'Descrição do Local 3' },
-  ];
+  const htmlMap = `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>html, body, #map { height: 100%; margin: 0; padding: 0; }</style>
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=45f8077e-cd8f-4919-be26-31ce1a691183&lang=pt_BR" type="text/javascript"></script>
+    <script>
+      ymaps.ready(init);
+      function init() {
+        var map = new ymaps.Map("map", {
+          center: [${location?.latitude || 0}, ${location?.longitude || 0}],
+          zoom: 14
+        });
+  
+        // Marcador da localização atual (ponto azul)
+        var myPlacemark = new ymaps.Placemark([${location?.latitude || 0}, ${location?.longitude || 0}], {
+          hintContent: 'Minha Localização',
+          balloonContent: 'Você está aqui'
+        }, {
+          preset: 'islands#blueCircleDotIcon'
+        });
+        map.geoObjects.add(myPlacemark);
+  
+        // Adiciona marcadores verdes para cada imóvel
+        ${properties.map(property => `
+          (function() {
+            var propertyPlacemark = new ymaps.Placemark(
+              [${property.coordinates?.[0] || 0}, ${property.coordinates?.[1] || 0}],
+              {
+                hintContent: '${property.typeResi || 'Imóvel'}',
+                balloonContent: [
+                  '<div style="padding: 5px; cursor: pointer;" onclick="window.ReactNativeWebView.postMessage(' + 
+                  JSON.stringify(JSON.stringify({ action: 'OPEN_DETAILS', id: '${property.id}' })) + 
+                  ')">',
+                  '<b>${property.typeResi || 'Imóvel'}</b>',
+                  '<br>${property.address || 'Sem endereço'}',
+                  '<br>${property.houseSize ? property.houseSize + ' m²' : ''}',
+                  '${property.price ? ' - ' + property.price + ' Kz' : ''}',
+                  '</div>'
+                ].join('')
+              },
+              {
+                preset: 'islands#greenDotIcon',
+                iconColor: '#1A7526'
+              }
+            );
+            map.geoObjects.add(propertyPlacemark);
+          })();
+        `).join('')}
+      }
+    </script>
+  </head>
+  <body>
+    <div id="map"></div>
+  </body>
+  </html>
+  `;
 
   return (
     <SafeAreaView style={styles.container}>
-      <MapView
-        style={styles.map}
-        initialRegion={{
-          latitude: location.latitude,
-          longitude: location.longitude,
-          latitudeDelta: 0.0922,
-          longitudeDelta: 0.0421,
-        }}
-        tileUrlTemplate="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      >
-        <Marker
-          coordinate={{
-            latitude: location.latitude,
-            longitude: location.longitude,
+      <View style={{ flex: 1 }}>
+        <WebView
+          originWhitelist={['*']}
+          source={{ html: htmlMap }}
+          javaScriptEnabled={true}
+          domStorageEnabled={true}
+          style={styles.map}
+          onMessage={(event) => {
+            try {
+              const message = JSON.parse(JSON.parse(event.nativeEvent.data));
+              if (message.action === 'OPEN_DETAILS') {
+                const residence = properties.find(p => p.id.toString() === message.id.toString());
+                if (residence) {
+                  navigation.navigate('Details', { residence });
+                }
+              }
+            } catch (error) {
+              console.error('Erro ao processar mensagem:', error);
+            }
           }}
-          title="Minha Localização"
-        />
-
-        {locations.map((locationItem) => (
-          <Marker
-            key={locationItem.id}
-            coordinate={{
-              latitude: locationItem.latitude,
-              longitude: locationItem.longitude,
-            }}
-            title={locationItem.title}
-            description={locationItem.description}
-          />
-        ))}
-      </MapView>
-
-      <View style={styles.inputContainer}>
-        <MagnifyingGlass size={30} weight="thin" />
-        <TextInput
-          style={styles.input}
-          placeholder="Pesquise sua casa"
-          placeholderTextColor="#606060"
         />
       </View>
 
@@ -103,7 +197,7 @@ function Map() {
           <Text style={styles.addressText}>Localização: {address}</Text>
         </View>
       ) : (
-        <Text>Obtendo endereço...</Text>
+        <Text style={{ textAlign: 'center' }}>Obtendo endereço...</Text>
       )}
     </SafeAreaView>
   );

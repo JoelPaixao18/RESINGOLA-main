@@ -23,9 +23,21 @@ try {
         if (!empty($res['imagem'])) {
             $res['imagem'] = $baseImageUrl . $res['imagem'];
         }
+
+            // --- INÍCIO DA MODIFICAÇÃO ---
+        // Garante que latitude e longitude sejam números
+        $res['latitude'] = isset($res['latitude']) ? (float)$res['latitude'] : 0;
+        $res['longitude'] = isset($res['longitude']) ? (float)$res['longitude'] : 0;
+        
+        // Se location for JSON, decodifica para objeto
+        if (!empty($res['location']) && is_string($res['location'])) {
+            $locationData = json_decode($res['location'], true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $res['location'] = $locationData;
+            }
+        }
     }
     
-
     echo json_encode([
         'status' => 'success',
         'data' => $residencias
