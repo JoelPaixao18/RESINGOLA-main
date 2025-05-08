@@ -3,12 +3,14 @@ import { SafeAreaView, View, Text, ActivityIndicator, TouchableOpacity, Alert } 
 import { WebView } from 'react-native-webview';
 import * as Location from 'expo-location';
 import styles from '../styles/Map';
+import { useNavigation } from '@react-navigation/native';
 
 function Map() {
   const [location, setLocation] = useState(null);
   const [address, setAddress] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigation = useNavigation();
   const [properties, setProperties] = useState([]); // Novo estado para armazenar os imóveis
 
   const fetchProperties = async () => {
@@ -122,8 +124,8 @@ function Map() {
           center: [${location?.latitude || 0}, ${location?.longitude || 0}],
           zoom: 14
         });
-  
-        // Marcador da localização atual (ponto azul)
+
+        // Marcador da localização atual
         var myPlacemark = new ymaps.Placemark([${location?.latitude || 0}, ${location?.longitude || 0}], {
           hintContent: 'Minha Localização',
           balloonContent: 'Você está aqui'
@@ -131,32 +133,28 @@ function Map() {
           preset: 'islands#blueCircleDotIcon'
         });
         map.geoObjects.add(myPlacemark);
-  
-        // Adiciona marcadores verdes para cada imóvel
+
+        // Adiciona marcadores para os imóveis
         ${properties.map(property => `
-          (function() {
-            var propertyPlacemark = new ymaps.Placemark(
-              [${property.coordinates?.[0] || 0}, ${property.coordinates?.[1] || 0}],
-              {
-                hintContent: '${property.typeResi || 'Imóvel'}',
-                balloonContent: [
-                  '<div style="padding: 5px; cursor: pointer;" onclick="window.ReactNativeWebView.postMessage(' + 
-                  JSON.stringify(JSON.stringify({ action: 'OPEN_DETAILS', id: '${property.id}' })) + 
-                  ')">',
-                  '<b>${property.typeResi || 'Imóvel'}</b>',
-                  '<br>${property.address || 'Sem endereço'}',
-                  '<br>${property.houseSize ? property.houseSize + ' m²' : ''}',
-                  '${property.price ? ' - ' + property.price + ' Kz' : ''}',
-                  '</div>'
-                ].join('')
-              },
-              {
-                preset: 'islands#greenDotIcon',
-                iconColor: '#1A7526'
-              }
-            );
-            map.geoObjects.add(propertyPlacemark);
-          })();
+          var propertyPlacemark = new ymaps.Placemark(
+            [${property.coordinates?.[0] || 0}, ${property.coordinates?.[1] || 0}],
+            {
+              hintContent: '${property.typeResi || 'Imóvel'}',
+              balloonContent: [
+                '<div style="padding: 5px; cursor: pointer;" onclick="window.ReactNativeWebView.postMessage(\\'${property.id}\\')">',
+                '<b>${property.typeResi || 'Imóvel'}</b>',
+                '<br>${property.address || 'Sem endereço'}',
+                '<br>${property.houseSize ? property.houseSize + ' m²' : ''}',
+                '${property.price ? ' - ' + property.price + ' Kz' : ''}',
+                '</div>'
+              ].join('')
+            },
+            {
+              preset: 'islands#greenDotIcon',
+              iconColor: '#1A7526'
+            }
+          );
+          map.geoObjects.add(propertyPlacemark);
         `).join('')}
       }
     </script>
@@ -170,23 +168,17 @@ function Map() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={{ flex: 1 }}>
-        <WebView
+      <WebView
           originWhitelist={['*']}
           source={{ html: htmlMap }}
           javaScriptEnabled={true}
           domStorageEnabled={true}
           style={styles.map}
           onMessage={(event) => {
-            try {
-              const message = JSON.parse(JSON.parse(event.nativeEvent.data));
-              if (message.action === 'OPEN_DETAILS') {
-                const residence = properties.find(p => p.id.toString() === message.id.toString());
-                if (residence) {
-                  navigation.navigate('Details', { residence });
-                }
-              }
-            } catch (error) {
-              console.error('Erro ao processar mensagem:', error);
+            const propertyId = event.nativeEvent.data;
+            const residence = properties.find(p => p.id.toString() === propertyId.toString());
+            if (residence) {
+              navigation.navigate('Details', { residence });
             }
           }}
         />

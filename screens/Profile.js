@@ -73,6 +73,10 @@ export default function UserProfile() {
     }
   };  
 
+  const handleUpload = async () => {
+    navigation.navigate('Upload')
+  };
+
   const openModal = () => {
     setModalVisible(true);
     Animated.timing(modalAnim, {
@@ -244,7 +248,7 @@ export default function UserProfile() {
         <View style={styles.content}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Meus Imóveis</Text>
-            <TouchableOpacity style={styles.addButton}>
+            <TouchableOpacity onPress={handleUpload} style={styles.addButton}>
               <Icon name="add" size={24} color="#fff" />
             </TouchableOpacity>
           </View>
