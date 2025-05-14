@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, Switch, ActivityIndicator, FlatList, Alert, ActionSheetIOS, Platform } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
@@ -7,6 +7,7 @@ import * as Location from 'expo-location';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import styles from '../styles/Upload';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Custom Radio Button Component
 const RadioButton = ({ selected, onPress, label }) => (
@@ -53,7 +54,26 @@ export default function Upload() {
   const [suggestions, setSuggestions] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  const isFormValid = () => {
+  // Adicione no início do componente Upload, após os outros estados
+  const [userId, setUserId] = useState(null);
+
+// Adicione este useEffect para carregar o ID do usuário quando o componente montar
+useEffect(() => {
+  const loadUserId = async () => {
+    try {
+      const id = await AsyncStorage.getItem('userId');
+      if (id) {
+        setUserId(id);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar ID do usuário:', error);
+    }
+  };
+
+  loadUserId();
+}, []);
+
+const isFormValid = () => {
     const newErrors = {};
     
     // Validações básicas que aplicam a todos os tipos
@@ -130,7 +150,7 @@ export default function Upload() {
     }
   
     return true;
-  };
+};
 
 const pickImage = async () => {
   const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -210,132 +230,50 @@ const pickImage = async () => {
     setImages(newImages);
   };
 
-  const uploadImage = async (uri) => {
-    try {
-      console.log('Preparando upload da imagem:', uri);
-      
-      // Verifica se o arquivo existe
-      const fileInfo = await FileSystem.getInfoAsync(uri);
-      if (!fileInfo.exists) {
-        throw new Error('Arquivo de imagem não encontrado');
-      }
-  
-      // Cria o FormData
-      const formData = new FormData();
-      formData.append('image', {
-        uri: uri,
-        type: 'image/jpeg',
-        name: `imovel_${Date.now()}.jpg`
-      });
-  
-      console.log('Enviando imagem para o servidor...');
-      const response = await fetch('http://192.168.20.217/RESINGOLA-main/Backend/uploads/upload_image.php', {
-        method: 'POST',
-        body: formData,
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-  
-      console.log('Resposta do upload:', response.status);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Erro no upload:', errorText);
-        throw new Error(`Erro HTTP: ${response.status}`);
-      }
-  
-      const result = await response.json();
-      console.log('Resultado do upload:', result);
-      
-      if (!result.status || result.status !== 'success') {
-        throw new Error(result.message || 'Upload falhou');
-      }
-  
-      return result.imageUrl;
-  
-    } catch (error) {
-      console.error('Erro no upload:', error);
-      throw new Error(`Falha ao enviar imagem: ${error.message}`);
-    }
-  };
-  
-  // Função para verificar conexão
-  const checkNetworkConnection = async () => {
-    try {
-      const response = await fetch('http://192.168.20.217', {
-        method: 'HEAD',
-        timeout: 5000,
-      });
-      return true;
-    } catch {
-      return false;
-    }
-  };
-  
-  const getLocation = async () => {
-    setIsLoadingLocation(true);
-    let { status } = await Location.requestForegroundPermissionsAsync();
-    
-    if (status !== 'granted') {
-      alert('Permissão negada!');
-      setIsLoadingLocation(false);
-      return;
-    }
-  
-    try {
-      let { coords } = await Location.getCurrentPositionAsync({});
-      let address = await Location.reverseGeocodeAsync(coords);
-      
-      setLocation({
-        address: address[0] ? `${address[0].city}, ${address[0].district}` : 'Local desconhecido',
-        coordinates: {
-          lat: coords.latitude,
-          lng: coords.longitude
-        }
-      });
-    } catch (error) {
-      console.error(error);
-    }
-    setIsLoadingLocation(false);
-  };
-
   const handleSubmit = async () => {
     console.log('Iniciando processo de cadastro...');
   
+    // Verifique se temos um user_id válido
+    if (!userId) {
+      Alert.alert('Erro', 'Você precisa estar logado para cadastrar um imóvel');
+      navigation.navigate('Login');
+      return;
+    }
+
     // 1. Validação básica
     if (!isFormValid()) {
       console.log('Cadastro bloqueado: formulário inválido');
       return;
     }
   
-    // 2. Preparação dos dados
-    const residenceData = {
-      images: images,
-      houseSize: houseSize,
-      status: status,
-      typeResi: typeResi,
-      typology: typology,
-      livingRoomCount: livingRoomCount,
-      kitchenCount: kitchenCount,
-      hasWater: hasWater,
-      hasElectricity: hasElectricity,
-      bathroomCount: bathroomCount,
-      quintal: quintal,
-      andares: andares,
-      garagem: garagem,
-      varanda: varanda,
-      location: location.address,
-      latitude: location.coordinates.lat,
-      longitude: location.coordinates.lng,
-      price: price
-    };
-  
-    console.log('Dados preparados:', residenceData);
-  
-    // 3. Envio para o servidor
+    // 2. Envio para o servidor
     try {
+
+      // 3. Preparação dos dados
+      const residenceData = {
+        images: images,
+        houseSize: houseSize,
+        status: status,
+        typeResi: typeResi,
+        typology: typology,
+        livingRoomCount: livingRoomCount,
+        kitchenCount: kitchenCount,
+        hasWater: hasWater,
+        hasElectricity: hasElectricity,
+        bathroomCount: bathroomCount,
+        quintal: quintal,
+        andares: andares,
+        garagem: garagem,
+        varanda: varanda,
+        location: location.address,
+        latitude: location.coordinates.lat,
+        longitude: location.coordinates.lng,
+        price: price,
+        user_id: userId // Adicionando o ID do usuário
+      };
+    
+      console.log('Dados preparados:', residenceData);
+
       console.log('Iniciando envio para o servidor...');
       
       // Verifique se o endpoint está correto
@@ -343,7 +281,7 @@ const pickImage = async () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Accept': 'application/json',
         },
         body: JSON.stringify(residenceData)
       });

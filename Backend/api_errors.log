@@ -1,5 +1,0 @@
-2025-05-02 15:06:57 - Iniciando endpoint user_properties.php
-2025-05-02 15:06:57 - Conectando ao banco para user_id: 70
-2025-05-02 15:06:57 - Conexão com o banco verificada com sucesso
-2025-05-02 15:06:57 - Preparando query: SELECT id, typeResi AS tipo, price AS preco, location AS localizacao                FROM residences                WHERE user_id = :user_id                LIMIT 5
-2025-05-02 15:06:57 - Erro PDO: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'resingola.residences' doesn't exist | Código: 42S02

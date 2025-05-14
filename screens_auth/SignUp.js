@@ -68,7 +68,7 @@ export default function SignUp() {
 
     setLoading(true);
     try {
-      const response = await fetch('http://192.168.137.22/RESINGOLA-main/Backend/cadastrar.php', {
+      const response = await fetch('http://192.168.20.217/RESINGOLA-main/Backend/cadastrar.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

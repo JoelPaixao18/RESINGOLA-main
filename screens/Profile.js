@@ -4,6 +4,7 @@ import styles from "../styles/Profile";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/Ionicons";
+import { RefreshControl } from 'react-native'; // Adicione este import
 
 export default function UserProfile() {
   const [user, setUser] = useState(null);
@@ -12,6 +13,35 @@ export default function UserProfile() {
   const [modalAnim] = useState(new Animated.Value(0));
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
+  const [refreshing, setRefreshing] = useState(false); // Estado para controlar o refresh
+
+   // Função para atualizar os dados
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    
+    const fetchData = async () => {
+      try {
+        const userId = await AsyncStorage.getItem("userId");
+        if (!userId) return;
+
+        // Atualiza os imóveis
+        const propertiesResponse = await fetch(
+          `http://192.168.20.217/RESINGOLA-main/Backend/user_properties.php?user_id=${userId}`
+        );
+        const propertiesData = await propertiesResponse.json();
+
+        if (propertiesData.status === "success") {
+          setUserProperties(propertiesData.properties);
+        }
+      } catch (error) {
+        console.error("Erro ao atualizar:", error);
+      } finally {
+        setRefreshing(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -257,6 +287,13 @@ export default function UserProfile() {
             contentContainerStyle={styles.propertyList}
             data={userProperties}
             keyExtractor={(item) => item.id.toString()}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={['#1A7526']} // Cor do spinner (verde)
+                tintColor="#1A7526" // Cor do spinner (iOS)
+              />}
             ListEmptyComponent={renderEmptyList}
             showsVerticalScrollIndicator={false}
             renderItem={({ item }) => (

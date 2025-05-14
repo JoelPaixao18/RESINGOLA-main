@@ -1,5 +1,3 @@
-// Adicionei a chamada à API e o redirecionamento no arquivo Login.js
-
 import React, { useState } from "react";
 import { TouchableOpacity, View, Image, Text, KeyboardAvoidingView, Platform, ScrollView, Dimensions, Alert, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -17,16 +15,16 @@ export default function Login() {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
-  const [loading, setLoading] = useState(false); // Estado para controlar o loading
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !senha) {
       Alert.alert('Erro', 'Por favor, preencha todos os campos');
       return;
     }
-  
+
     setLoading(true);
-  
+
     try {
       const response = await fetch('http://192.168.20.217/RESINGOLA-main/Backend/login.php', {
         method: 'POST',
@@ -38,18 +36,19 @@ export default function Login() {
           senha: senha
         })
       });
-  
+
       if (!response.ok) {
         throw new Error('Erro na conexão com o servidor');
       }
-  
+
       const result = await response.json();
-  
+
       if (result.status === 'success') {
-        // 🔐 SALVA O ID DO USUÁRIO PARA USO FUTURO (ex: tela de perfil)
-        await AsyncStorage.setItem("userId", result.user.id.toString());
-  
-        // Redireciona para Home
+        await AsyncStorage.multiSet([
+          ['userId', result.user.id.toString()],
+          ['userData', JSON.stringify(result.user)]
+        ]);
+
         navigation.navigate('_TabsLayout', { userData: result.user, screen: 'Home' });
       } else {
         Alert.alert('Erro', result.message || 'Email ou senha incorretos');
@@ -57,10 +56,7 @@ export default function Login() {
     } catch (error) {
       console.error('Erro no login:', error);
       if (error.message === 'Network request failed') {
-        Alert.alert(
-          'Erro de Conexão', 
-          'Não foi possível Iniciar Sessão. Verifique sua conexão com a internet.'
-        );
+        Alert.alert('Erro de Conexão', 'Não foi possível Iniciar Sessão. Verifique sua conexão com a internet.');
       } else {
         Alert.alert('Erro', 'Ocorreu um problema durante o login');
       }
@@ -70,28 +66,29 @@ export default function Login() {
   };
 
   const handleGoBack = async () => {
-    // Limpa o AsyncStorage se necessário
-    await AsyncStorage.removeItem("userId");
-    navigation.navigate('Welcome');
+    try {
+      await AsyncStorage.removeItem('userId');
+      navigation.navigate('Welcome');
+    } catch (error) {
+      console.error('Erro ao limpar dados de autenticação:', error);
+    }
   }
-   
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={{ flex: 1, backgroundColor: themeColors.background }}
     >
-      {/* Cabeçalho fixo */}
       <View style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          paddingTop: RFPercentage(5),
-          paddingHorizontal: RFPercentage(2),
-          paddingBottom: RFPercentage(2),
-          backgroundColor: themeColors.background,
-          borderBottomWidth: 1,
-          borderBottomColor: '#eee',
-        }}>
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingTop: RFPercentage(5),
+        paddingHorizontal: RFPercentage(2),
+        paddingBottom: RFPercentage(2),
+        backgroundColor: themeColors.background,
+        borderBottomWidth: 1,
+        borderBottomColor: '#eee',
+      }}>
         <TouchableOpacity 
           onPress={handleGoBack}
           style={{
@@ -109,10 +106,7 @@ export default function Login() {
             elevation: 2,
           }}
         >
-          <ArrowLeftIcon 
-            size={RFValue(20)} 
-            color={themeColors.dark}
-          />
+          <ArrowLeftIcon size={RFValue(20)} color={themeColors.dark} />
         </TouchableOpacity>
 
         <Text style={{
@@ -125,14 +119,11 @@ export default function Login() {
         </Text>
       </View>
 
-      {/* Conteúdo rolável */}
       <ScrollView 
         contentContainerStyle={{ flexGrow: 1 }}
         keyboardShouldPersistTaps="handled"
       >
         <View style={{ flex: 1, alignItems: 'center', padding: RFPercentage(2) }}>
-
-          {/* Imagem de boas-vindas */}
           <Image 
             source={require('../assets/login.png')}
             style={{
@@ -145,7 +136,6 @@ export default function Login() {
             }} 
           />
 
-          {/* Formulário */}
           <View 
             style={{
               backgroundColor: themeColors.white,
@@ -159,19 +149,12 @@ export default function Login() {
             }}
           >
             <View style={{ marginBottom: RFPercentage(3) }}>
-              
-              {/* Campo Email */}
               <Text style={welcomeStyles.label}>E-mail</Text>
               <View style={welcomeStyles.inputContainer}>
-                <Icon 
-                  name="envelope" 
-                  size={RFValue(20)} 
-                  color="#666" 
-                  style={welcomeStyles.icon} 
-                />
+                <Icon name="envelope" size={RFValue(20)} color="#666" style={welcomeStyles.icon} />
                 <TextInput
                   placeholder="email@gmail.com"
-                  onChangeText={(value) => setEmail(value)}
+                  onChangeText={setEmail}
                   keyboardType="email-address"
                   style={welcomeStyles.inputText}
                   placeholderTextColor="#999"
@@ -180,18 +163,12 @@ export default function Login() {
 
               <View style={{ height: RFPercentage(2) }} />
 
-              {/* Campo Senha */}
               <Text style={welcomeStyles.label}>Senha</Text>
               <View style={welcomeStyles.inputContainer}>
-                <Icon 
-                  name="key" 
-                  size={RFValue(20)} 
-                  color="#666" 
-                  style={welcomeStyles.icon} 
-                />
+                <Icon name="key" size={RFValue(20)} color="#666" style={welcomeStyles.icon} />
                 <TextInput
                   placeholder="* * * * * * *"
-                  onChangeText={(value) => setSenha(value)}
+                  onChangeText={setSenha}
                   keyboardType="default"
                   secureTextEntry={true}
                   style={welcomeStyles.inputText}
@@ -199,14 +176,12 @@ export default function Login() {
                 />
               </View>
 
-              {/* Link de esquecer senha */}
               <TouchableOpacity style={{ alignSelf: 'flex-end', marginTop: RFPercentage(1.5) }}>
                 <Text style={{ color: themeColors.blue, fontSize: RFValue(12) }}>
                   Esqueci minha senha
                 </Text>
               </TouchableOpacity>
 
-              {/* Botão Login */}
               <TouchableOpacity 
                 onPress={handleLogin}
                 disabled={loading}
@@ -230,27 +205,23 @@ export default function Login() {
                 {loading ? (
                   <ActivityIndicator size="small" color={themeColors.dark} />
                 ) : (
-                  <Text 
-                    style={{ 
-                      color: themeColors.white, 
-                      fontSize: RFValue(16), 
-                      textAlign: 'center',
-                      fontWeight: 'bold',
-                    }}
-                  >
+                  <Text style={{ 
+                    color: themeColors.white, 
+                    fontSize: RFValue(16), 
+                    textAlign: 'center',
+                    fontWeight: 'bold',
+                  }}>
                     Login
                   </Text>
                 )}
               </TouchableOpacity>
 
-              {/* Divider "Ou" */}
               <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: RFPercentage(3) }}>
                 <View style={{ flex: 1, height: 1, backgroundColor: '#ccc' }} />
                 <Text style={{ marginHorizontal: 10, color: '#666' }}>Ou</Text>
                 <View style={{ flex: 1, height: 1, backgroundColor: '#ccc' }} />
               </View>
 
-              {/* Redes sociais */}
               <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: RFPercentage(3) }}>
                 <TouchableOpacity style={{ marginHorizontal: 10 }}>
                   <Image 
@@ -272,7 +243,6 @@ export default function Login() {
                 </TouchableOpacity>
               </View>
 
-              {/* Link para criar conta */}
               <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: RFPercentage(3) }}>
                 <Text style={{ color: themeColors.text, fontSize: RFValue(12) }}>
                   Não tem uma conta? 
@@ -286,9 +256,8 @@ export default function Login() {
 
             </View>
           </View>
-
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
-  )
+  );
 }

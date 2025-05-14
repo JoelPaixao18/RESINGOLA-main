@@ -17,7 +17,7 @@ try {
     $residencias = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Caminho base da pasta onde estão as imagens
-    $baseImageUrl = "http://192.168.124.25/RESINGOLA-main/uploads/";
+    $baseImageUrl = "http://192.168.20.217/RESINGOLA-main/uploads/";
     
     foreach ($residencias as &$res) {
         if (!empty($res['imagem'])) {

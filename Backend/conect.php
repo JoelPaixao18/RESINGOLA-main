@@ -4,62 +4,49 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST");
 header("Access-Control-Allow-Headers: Content-Type");
 
-// Debug: Registrar o raw input
-file_put_contents('input.log', file_get_contents('php://input'));
-
 require_once __DIR__ . '/../Backend/db.php';
 
-// Adicione esta função no início do arquivo
 function formatLocation($address) {
-    // Remove "Província" e "Município"
-    $formatted = str_replace(['Província ', 'Município '], '', $address);
-    
-    // Remove qualquer conteúdo entre parênteses (se houver)
+    // Remove termos desnecessários e formata
+    $formatted = str_replace(['Província ', 'Município ', 'Angola, '], '', $address);
     $formatted = preg_replace('/\(.*?\)/', '', $formatted);
-    
-    // Remove espaços extras e vírgulas desnecessárias
     $formatted = trim($formatted, ', ');
     
-    return $formatted;
+    // Extrai apenas cidade e bairro (se existir)
+    $parts = explode(', ', $formatted);
+    if (count($parts) > 1) {
+        return $parts[0] . ', ' . $parts[1]; // Retorna "Cidade, Bairro"
+    }
+    return $parts[0]; // Retorna apenas o nome se não tiver vírgula
 }
 
 try {
     $json = file_get_contents('php://input');
     $data = json_decode($json, true);
 
-        // Verificação extra do JSON
-        if (empty($json)) {
-            throw new Exception('Dados vazios recebidos');
-        }
-    
+    if (empty($json)) {
+        throw new Exception('Dados vazios recebidos');
+    }
+
     if (json_last_error() !== JSON_ERROR_NONE) {
         throw new Exception('JSON inválido: ' . json_last_error_msg());
     }
 
-    // Validações básicas
-    $requiredFields = ['images', 'houseSize', 'status', 'typeResi', 'typology', 'location', 'price'];
+    // Campos obrigatórios
+    $requiredFields = ['images', 'houseSize', 'status', 'typeResi', 'typology', 'location', 'price', 'user_id'];
     foreach ($requiredFields as $field) {
         if (empty($data[$field])) {
             throw new Exception("O campo $field é obrigatório");
         }
     }
 
-    // Processamento das imagens
+    // Processamento dos dados
     $images = json_encode($data['images']);
-    
+    $location = formatLocation($data['location']); // Já formatado como texto simples
+    $latitude = $data['latitude'] ?? null;
+    $longitude = $data['longitude'] ?? null;
 
-    // No seu código, antes de inserir no banco:
-    $formattedLocation = formatLocation($data['location']);
-    $locationData = [
-        'address' => $formattedLocation, // Usa a versão formatada
-        'coordinates' => [
-            'lat' => $data['latitude'] ?? null,
-            'lng' => $data['longitude'] ?? null
-        ]
-        ];
-    $location = json_encode($locationData);
-
-    // Preparação dos outros campos
+    // Outros campos
     $houseSize = $data['houseSize'];
     $status = $data['status'];
     $typeResi = $data['typeResi'];
@@ -74,18 +61,19 @@ try {
     $garagem = $data['garagem'] ?? false;
     $varanda = $data['varanda'] ?? false;
     $price = $data['price'];
+    $user_id = $data['user_id'];
 
     // Query SQL
     $sql = "INSERT INTO residencia (
         images, houseSize, status, typeResi, typology,
         livingRoomCount, kitchenCount, hasWater, hasElectricity,
         bathroomCount, quintal, andares, garagem, varanda,
-        location, latitude, longitude, price
+        location, latitude, longitude, price, user_id
     ) VALUES (
         :images, :houseSize, :status, :typeResi, :typology,
         :livingRoomCount, :kitchenCount, :hasWater, :hasElectricity,
         :bathroomCount, :quintal, :andares, :garagem, :varanda,
-        :location, :latitude, :longitude, :price
+        :location, :latitude, :longitude, :price, :user_id
     )";
 
     $stmt = $pdo->prepare($sql);
@@ -105,10 +93,11 @@ try {
     $stmt->bindParam(':andares', $andares, PDO::PARAM_INT);
     $stmt->bindParam(':garagem', $garagem, PDO::PARAM_BOOL);
     $stmt->bindParam(':varanda', $varanda, PDO::PARAM_BOOL);
-    $stmt->bindParam(':location', $location);
-    $stmt->bindParam(':latitude', $data['latitude']);
-    $stmt->bindParam(':longitude', $data['longitude']);
+    $stmt->bindParam(':location', $location); // Agora é texto simples
+    $stmt->bindParam(':latitude', $latitude);
+    $stmt->bindParam(':longitude', $longitude);
     $stmt->bindParam(':price', $price);
+    $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
 
     if ($stmt->execute()) {
         echo json_encode([

@@ -1,54 +1,53 @@
 <?php
+header('Content-Type: application/json');
 header("Access-Control-Allow-Origin: *");
-header("Content-Type: application/json; charset=UTF-8");
-require_once '../Backend/db.php';
+header("Access-Control-Allow-Methods: POST");
+header("Access-Control-Allow-Headers: Content-Type");
 
-$data = json_decode(file_get_contents("php://input"));
+require_once 'db.php';
 
-if (!empty($data->email) && !empty($data->senha)) {
-    try {
-        $stmt = $pdo->prepare("SELECT id, nome, email, BI, tel, senha FROM usuario WHERE email = ?");
-        $stmt->execute([$data->email]);
-        
-        if ($stmt->rowCount() > 0) {
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            if (password_verify($data->senha, $user['senha'])) {
-                // Remove a senha antes de retornar os dados
-                unset($user['senha']);
-                
-                echo json_encode([
-                    'status' => 'success',
-                    'message' => 'Login bem-sucedido',
-                    'user' => $user
-                ]);
-                
-            } else {
-                http_response_code(401);
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'Senha incorreta'
-                ]);
-            }
-        } else {
-            http_response_code(404);
-            echo json_encode([
-                'status' => 'error',
-                'message' => 'Usuário não encontrado'
-            ]);
-        }
-    } catch (PDOException $e) {
-        http_response_code(500);
-        echo json_encode([
-            'status' => 'error',
-            'message' => 'Erro no servidor: ' . $e->getMessage()
-        ]);
+try {
+    $json = file_get_contents('php://input');
+    $data = json_decode($json, true);
+
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        throw new Exception('Formato de dados inválido');
     }
-} else {
+
+    if (empty($data['email']) || empty($data['senha'])) {
+        throw new Exception('Email e senha são obrigatórios');
+    }
+
+    $email = $data['email'];
+    $senha = $data['senha'];
+
+    // Busca usuário pelo email
+    $stmt = $pdo->prepare("SELECT * FROM usuario WHERE email = ?");
+    $stmt->execute([$email]);
+    $user = $stmt->fetch();
+
+    if (!$user) {
+        throw new Exception('Email não encontrado');
+    }
+
+    // Verifica a senha
+    if (!password_verify($senha, $user['senha'])) {
+        throw new Exception('Senha incorreta');
+    }
+
+    // Remove dados sensíveis antes de retornar
+    unset($user['senha']);
+
+    echo json_encode([
+        'status' => 'success',
+        'message' => 'Login bem-sucedido',
+        'user' => $user
+    ]);
+
+} catch (Exception $e) {
     http_response_code(400);
     echo json_encode([
         'status' => 'error',
-        'message' => 'Email e senha são obrigatórios'
+        'message' => $e->getMessage()
     ]);
 }
-?>
