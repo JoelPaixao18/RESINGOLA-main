@@ -64,7 +64,8 @@ function Details() {
     if (typeof locationString === 'string' && !locationString.startsWith('{')) {
       return locationString
         .replace('Província ', '')
-        .replace('Município ', '');
+        .replace('Município ', '')
+        .replace('Distrito ', '');
     }
     
     try {
@@ -75,14 +76,16 @@ function Details() {
         
         return address
           .replace('Província ', '')
-          .replace('Município ', '');
+          .replace('Município ', '')
+          .replace('Distrito ', '');
       }
       
       // Se for um objeto de localização diretamente
       if (typeof locationString === 'object' && locationString.address) {
         return locationString.address
           .replace('Província ', '')
-          .replace('Município ', '');
+          .replace('Município ', '')
+          .replace('Distrito ', '');
       }
       
       return locationString;

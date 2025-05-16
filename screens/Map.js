@@ -33,7 +33,7 @@ function Map() {
           
           return {
             ...property,
-            address: address.replace('Província ', '').replace('Município ', ''),
+            address: address.replace('Província ', '').replace('Município ', '').replace('Distrito ', '').replace('Bairro ', ''),
             coordinates: [
               parseFloat(property.latitude) || 0,
               parseFloat(property.longitude) || 0

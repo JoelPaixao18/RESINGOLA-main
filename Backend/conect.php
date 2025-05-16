@@ -6,64 +6,81 @@ header("Access-Control-Allow-Headers: Content-Type");
 
 require_once __DIR__ . '/../Backend/db.php';
 
-function formatLocation($address) {
-    // Remove termos desnecessários e formata
-    $formatted = str_replace(['Província ', 'Município ', 'Angola, '], '', $address);
-    $formatted = preg_replace('/\(.*?\)/', '', $formatted);
-    $formatted = trim($formatted, ', ');
-    
-    // Extrai apenas cidade e bairro (se existir)
-    $parts = explode(', ', $formatted);
-    if (count($parts) > 1) {
-        return $parts[0] . ', ' . $parts[1]; // Retorna "Cidade, Bairro"
-    }
-    return $parts[0]; // Retorna apenas o nome se não tiver vírgula
+// Configurações para upload de imagens
+$uploadDir = __DIR__ . '/../Backend/uploads/uploads';
+$allowedTypes = ['image/jpeg','image/jpg', 'image/png', 'image/gif'];
+$maxFileSize = 5 * 1024 * 1024; // 5MB
+
+// Criar diretório se não existir
+if (!file_exists($uploadDir)) {
+    mkdir($uploadDir, 0777, true);
 }
 
 try {
-    $json = file_get_contents('php://input');
-    $data = json_decode($json, true);
-
-    if (empty($json)) {
-        throw new Exception('Dados vazios recebidos');
+    // Verificar se há imagens enviadas
+    if (empty($_FILES['images'])) {
+        throw new Exception('Nenhuma imagem foi enviada');
     }
 
-    if (json_last_error() !== JSON_ERROR_NONE) {
-        throw new Exception('JSON inválido: ' . json_last_error_msg());
-    }
+    // Processar cada imagem
+    $imagePaths = [];
+    foreach ($_FILES['images']['tmp_name'] as $index => $tmpName) {
+        $fileType = $_FILES['images']['type'][$index];
+        $fileSize = $_FILES['images']['size'][$index];
+        $errorCode = $_FILES['images']['error'][$index];
 
-    // Campos obrigatórios
-    $requiredFields = ['images', 'houseSize', 'status', 'typeResi', 'typology', 'location', 'price', 'user_id'];
-    foreach ($requiredFields as $field) {
-        if (empty($data[$field])) {
-            throw new Exception("O campo $field é obrigatório");
+        // Verificar erros no upload
+        if ($errorCode !== UPLOAD_ERR_OK) {
+            throw new Exception('Erro no upload da imagem: ' . $errorCode);
         }
+
+        // Verificar tipo do arquivo
+        if (!in_array($fileType, $allowedTypes)) {
+            throw new Exception('Tipo de arquivo não permitido: ' . $fileType);
+        }
+
+        // Verificar tamanho do arquivo
+        if ($fileSize > $maxFileSize) {
+            throw new Exception('Arquivo excede o tamanho máximo de 5MB');
+        }
+
+        // Gerar nome único para o arquivo
+        $extension = pathinfo($_FILES['images']['name'][$index], PATHINFO_EXTENSION);
+        $filename = 'img_' . date('YmdHis') . '_' . $index . '.' . $extension;
+        $destination = $uploadDir . $filename;
+
+        // Mover arquivo para o diretório de uploads
+        if (!move_uploaded_file($tmpName, $destination)) {
+            throw new Exception('Falha ao salvar a imagem no servidor');
+        }
+
+        $imagePaths[] = $filename;
     }
 
-    // Processamento dos dados
-    $images = json_encode($data['images']);
-    $location = formatLocation($data['location']); // Já formatado como texto simples
-    $latitude = $data['latitude'] ?? null;
-    $longitude = $data['longitude'] ?? null;
+    // Obter outros dados do formulário
+    $data = [
+        'images' => json_encode($imagePaths),
+        'houseSize' => $_POST['houseSize'],
+        'status' => $_POST['status'],
+        'typeResi' => $_POST['typeResi'],
+        'typology' => $_POST['typology'],
+        'livingRoomCount' => $_POST['livingRoomCount'] ?? 0,
+        'kitchenCount' => $_POST['kitchenCount'] ?? 1,
+        'hasWater' => $_POST['hasWater'] === 'true' ? 1 : 0,
+        'hasElectricity' => $_POST['hasElectricity'] === 'true' ? 1 : 0,
+        'bathroomCount' => $_POST['bathroomCount'] ?? 1,
+        'quintal' => $_POST['quintal'] === 'true' ? 1 : 0,
+        'andares' => $_POST['andares'] ?? 1,
+        'garagem' => $_POST['garagem'] === 'true' ? 1 : 0,
+        'varanda' => $_POST['varanda'] === 'true' ? 1 : 0,
+        'location' => $_POST['location'],
+        'latitude' => $_POST['latitude'],
+        'longitude' => $_POST['longitude'],
+        'price' => $_POST['price'],
+        'user_id' => $_POST['user_id']
+    ];
 
-    // Outros campos
-    $houseSize = $data['houseSize'];
-    $status = $data['status'];
-    $typeResi = $data['typeResi'];
-    $typology = $data['typology'];
-    $livingRoomCount = $data['livingRoomCount'] ?? 0;
-    $kitchenCount = $data['kitchenCount'] ?? 1;
-    $hasWater = $data['hasWater'] ?? false;
-    $hasElectricity = $data['hasElectricity'] ?? false;
-    $bathroomCount = $data['bathroomCount'] ?? 1;
-    $quintal = $data['quintal'] ?? false;
-    $andares = $data['andares'] ?? 1;
-    $garagem = $data['garagem'] ?? false;
-    $varanda = $data['varanda'] ?? false;
-    $price = $data['price'];
-    $user_id = $data['user_id'];
-
-    // Query SQL
+    // Inserir no banco de dados
     $sql = "INSERT INTO residencia (
         images, houseSize, status, typeResi, typology,
         livingRoomCount, kitchenCount, hasWater, hasElectricity,
@@ -77,37 +94,13 @@ try {
     )";
 
     $stmt = $pdo->prepare($sql);
-    
-    // Bind dos parâmetros
-    $stmt->bindParam(':images', $images);
-    $stmt->bindParam(':houseSize', $houseSize);
-    $stmt->bindParam(':status', $status);
-    $stmt->bindParam(':typeResi', $typeResi);
-    $stmt->bindParam(':typology', $typology);
-    $stmt->bindParam(':livingRoomCount', $livingRoomCount, PDO::PARAM_INT);
-    $stmt->bindParam(':kitchenCount', $kitchenCount, PDO::PARAM_INT);
-    $stmt->bindParam(':hasWater', $hasWater, PDO::PARAM_BOOL);
-    $stmt->bindParam(':hasElectricity', $hasElectricity, PDO::PARAM_BOOL);
-    $stmt->bindParam(':bathroomCount', $bathroomCount, PDO::PARAM_INT);
-    $stmt->bindParam(':quintal', $quintal, PDO::PARAM_BOOL);
-    $stmt->bindParam(':andares', $andares, PDO::PARAM_INT);
-    $stmt->bindParam(':garagem', $garagem, PDO::PARAM_BOOL);
-    $stmt->bindParam(':varanda', $varanda, PDO::PARAM_BOOL);
-    $stmt->bindParam(':location', $location); // Agora é texto simples
-    $stmt->bindParam(':latitude', $latitude);
-    $stmt->bindParam(':longitude', $longitude);
-    $stmt->bindParam(':price', $price);
-    $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+    $stmt->execute($data);
 
-    if ($stmt->execute()) {
-        echo json_encode([
-            'status' => 'success',
-            'message' => 'Imóvel cadastrado com sucesso',
-            'id' => $pdo->lastInsertId()
-        ]);
-    } else {
-        throw new Exception('Erro ao executar a query: ' . implode(', ', $stmt->errorInfo()));
-    }
+    echo json_encode([
+        'status' => 'success',
+        'message' => 'Imóvel cadastrado com sucesso',
+        'id' => $pdo->lastInsertId()
+    ]);
 
 } catch (Exception $e) {
     http_response_code(500);

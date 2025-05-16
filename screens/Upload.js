@@ -230,103 +230,92 @@ const pickImage = async () => {
     setImages(newImages);
   };
 
-  const handleSubmit = async () => {
-    console.log('Iniciando processo de cadastro...');
-  
-    // Verifique se temos um user_id válido
-    if (!userId) {
-      Alert.alert('Erro', 'Você precisa estar logado para cadastrar um imóvel');
-      navigation.navigate('Login');
-      return;
-    }
+// Substitua a função handleSubmit no Upload.js por esta versão modificada
+const handleSubmit = async () => {
+  console.log('Iniciando processo de cadastro...');
 
-    // 1. Validação básica
-    if (!isFormValid()) {
-      console.log('Cadastro bloqueado: formulário inválido');
-      return;
-    }
-  
-    // 2. Envio para o servidor
-    try {
+  if (!userId) {
+    Alert.alert('Erro', 'Você precisa estar logado para cadastrar um imóvel');
+    navigation.navigate('Login');
+    return;
+  }
 
-      // 3. Preparação dos dados
-      const residenceData = {
-        images: images,
-        houseSize: houseSize,
-        status: status,
-        typeResi: typeResi,
-        typology: typology,
-        livingRoomCount: livingRoomCount,
-        kitchenCount: kitchenCount,
-        hasWater: hasWater,
-        hasElectricity: hasElectricity,
-        bathroomCount: bathroomCount,
-        quintal: quintal,
-        andares: andares,
-        garagem: garagem,
-        varanda: varanda,
-        location: location.address,
-        latitude: location.coordinates.lat,
-        longitude: location.coordinates.lng,
-        price: price,
-        user_id: userId // Adicionando o ID do usuário
-      };
+  if (!isFormValid()) {
+    console.log('Cadastro bloqueado: formulário inválido');
+    return;
+  }
+
+  try {
+    // Preparar FormData para envio
+    const formData = new FormData();
     
-      console.log('Dados preparados:', residenceData);
+    // Adicionar imagens ao FormData
+    images.forEach((uri, index) => {
+      const filename = uri.split('/').pop();
+      const match = /\.(\w+)$/.exec(filename);
+      const type = match ? `image/${match[1]}` : 'image';
+      
+      formData.append('images[]', {
+        uri,
+        name: `image_${index}.${match ? match[1] : 'jpg'}`,
+        type
+      });
+    });
 
-      console.log('Iniciando envio para o servidor...');
-      
-      // Verifique se o endpoint está correto
-      const response = await fetch('http://192.168.20.217/RESINGOLA-main/Backend/conect.php', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify(residenceData)
-      });
-  
-      console.log('Resposta recebida, status:', response.status);
-  
-      // Verifique se a resposta é JSON válido
-      const text = await response.text();
-      let result;
-      try {
-        result = JSON.parse(text);
-      } catch (e) {
-        throw new Error(`Resposta do servidor não é JSON válido: ${text}`);
-      }
-  
-      console.log('Resposta completa:', result);
-  
-      if (!response.ok || result.status !== 'success') {
-        const errorMsg = result.message || `Erro HTTP ${response.status}`;
-        console.error('Erro no servidor:', errorMsg);
-        throw new Error(errorMsg);
-      }
-  
-      // 5. Sucesso
-      Alert.alert(
-        'Cadastro Concluído', 
-        'Imóvel registrado com sucesso!',
-        [{ text: 'OK', onPress: () => navigation.navigate('Home') }]
-      );
-      
-      resetForm();
-  
-    } catch (error) {
-      console.error('Falha no cadastro:', {
-        error: error.message,
-        stack: error.stack
-      });
-  
-      Alert.alert(
-        'Erro no Cadastro',
-        `Ocorreu um erro ao cadastrar: ${error.message}`,
-        [{ text: 'Entendi' }]
-      );
+    // Adicionar outros campos
+    formData.append('houseSize', houseSize);
+    formData.append('status', status);
+    formData.append('typeResi', typeResi);
+    formData.append('typology', typology);
+    formData.append('livingRoomCount', livingRoomCount);
+    formData.append('kitchenCount', kitchenCount);
+    formData.append('hasWater', hasWater);
+    formData.append('hasElectricity', hasElectricity);
+    formData.append('bathroomCount', bathroomCount);
+    formData.append('quintal', quintal);
+    formData.append('andares', andares);
+    formData.append('garagem', garagem);
+    formData.append('varanda', varanda);
+    formData.append('location', location.address);
+    formData.append('latitude', location.coordinates.lat);
+    formData.append('longitude', location.coordinates.lng);
+    formData.append('price', price);
+    formData.append('user_id', userId);
+
+    console.log('Enviando dados...');
+    
+    const response = await fetch('http://192.168.20.217/RESINGOLA-main/Backend/conect.php', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
+
+    const result = await response.json();
+    console.log('Resposta:', result);
+
+    if (!response.ok || result.status !== 'success') {
+      throw new Error(result.message || 'Erro no servidor');
     }
-  };
+
+    Alert.alert(
+      'Cadastro Concluído', 
+      'Imóvel registrado com sucesso!',
+      [{ text: 'OK', onPress: () => navigation.navigate('Home') }]
+    );
+    
+    resetForm();
+
+  } catch (error) {
+    console.error('Falha no cadastro:', error);
+    Alert.alert(
+      'Erro no Cadastro',
+      `Ocorreu um erro ao cadastrar: ${error.message}`,
+      [{ text: 'Entendi' }]
+    );
+  }
+};
 
   const resetForm = () => {
     setImages([]);
@@ -414,6 +403,8 @@ const pickImage = async () => {
         }
         
         displayName = displayName
+                  .replace('Distrito do ', '')
+          .replace('Distrito da ', '')
           .replace('Município do ', '')
           .replace('Município da ', '')
           .replace('Província do ', '')
