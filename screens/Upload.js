@@ -40,6 +40,7 @@ export default function Upload() {
   const [andares, setAndares] = useState('1'); // Valor padrão como string '1'
   const [garagem, setGaragem] = useState(false);
   const [varanda, setVaranda] = useState(false);
+  const [description, setDescription] = useState('');
   const [location, setLocation] = useState({
     address: '',
     coordinates: {
@@ -148,6 +149,11 @@ const isFormValid = () => {
       Alert.alert("Erro", "Informe um preço válido");
       return false;
     }
+
+    if (description.length > 500) {
+    Alert.alert("Erro", "A descrição não pode exceder 500 caracteres");
+    return false;
+  }
   
     return true;
 };
@@ -280,6 +286,7 @@ const handleSubmit = async () => {
     formData.append('latitude', location.coordinates.lat);
     formData.append('longitude', location.coordinates.lng);
     formData.append('price', price);
+    formData.append('description', description);
     formData.append('user_id', userId);
 
     console.log('Enviando dados...');
@@ -340,6 +347,7 @@ const handleSubmit = async () => {
         lng: null
       }
     });
+    setDescription('');
     setPrice('');
   };
 
@@ -737,6 +745,11 @@ const handleSubmit = async () => {
                   <Text style={styles.label}>Tipologia*</Text>
                   <View style={styles.radioContainer}>
                     <RadioButton
+                      selected={typology === 'T1'}
+                      onPress={() => setTypology('T1')}
+                      label="T1"
+                    />
+                    <RadioButton
                       selected={typology === 'T2'}
                       onPress={() => setTypology('T2')}
                       label="T2"
@@ -750,6 +763,16 @@ const handleSubmit = async () => {
                       selected={typology === 'T4'}
                       onPress={() => setTypology('T4')}
                       label="T4"
+                    />
+                    <RadioButton
+                      selected={typology === 'T5'}
+                      onPress={() => setTypology('T5')}
+                      label="T5"
+                    />
+                    <RadioButton
+                      selected={typology === 'T6'}
+                      onPress={() => setTypology('T6')}
+                      label="T6"
                     />
                   </View>
                 </View>
@@ -792,6 +815,11 @@ const handleSubmit = async () => {
                       selected={bathroomCount === '3'}
                       onPress={() => setBathroomCount('3')}
                       label="3"
+                    />
+                    <RadioButton
+                      selected={bathroomCount === '4'}
+                      onPress={() => setBathroomCount('4')}
+                      label="4"
                     />
                   </View>
                 </View>
@@ -955,6 +983,18 @@ const handleSubmit = async () => {
 
           {typeResi !== "" && (
             <>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Descrição (opcional)</Text>
+              <TextInput
+                style={[styles.input, { height: 100, textAlignVertical: 'top' }]} // Ajuste para área de texto maior
+                placeholder="Ex: Casa com vista para o mar, recém-renovada, perto de escolas..."
+                value={description}
+                onChangeText={setDescription}
+                multiline
+                numberOfLines={4}
+              />
+            </View>
               <Text style={styles.requiredFieldsText}>* Campos obrigatórios</Text>
               
               <TouchableOpacity 

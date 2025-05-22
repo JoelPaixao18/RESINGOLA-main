@@ -9,7 +9,7 @@ export default function Welcome() {
   return (
     <View style={[welcomeStyles.container, { backgroundColor: themeColors.white }]}>
       <View style={welcomeStyles.inner}>
-        <Text style={welcomeStyles.title}>Vamos Começar!</Text>
+        
       </View>
         <View style={welcomeStyles.inner}>
             <Image source={require('../assets/welcome.png')} 

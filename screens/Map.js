@@ -143,7 +143,7 @@ function Map() {
               balloonContent: [
                 '<div style="padding: 5px; cursor: pointer;" onclick="window.ReactNativeWebView.postMessage(\\'${property.id}\\')">',
                 '<b>${property.typeResi || 'Imóvel'}</b>',
-                '<br>${property.address || 'Sem endereço'}',
+                '<br>${property.location || 'Sem endereço'}',
                 '<br>${property.houseSize ? property.houseSize + ' m²' : ''}',
                 '${property.price ? ' - ' + property.price + ' Kz' : ''}',
                 '</div>'

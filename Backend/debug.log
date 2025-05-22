@@ -1,0 +1,55 @@
+Received user_id: 1
+User found: Array
+(
+    [id] => 1
+    [nome] => Joel Paixão Adão 
+    [tel] => 912345678
+)
+
+Received user_id: 3
+User found: Array
+(
+    [id] => 3
+    [nome] => Isabel Carneiro Da Cruz
+    [tel] => 932465542
+)
+
+Received user_id: undefined
+Received user_id: undefined
+Received user_id: undefined
+Error: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'user_id' in 'where clause'
+Received user_id: undefined
+2025-05-21 14:01:18 - Requisição recebida: Array
+(
+    [user_id] => undefined
+)
+
+2025-05-21 14:01:30 - Requisição recebida: Array
+(
+    [user_id] => undefined
+)
+
+2025-05-21 14:24:51 - REQUEST: Array
+(
+    [user_id] => 1
+)
+
+Querying database for user_id: 1
+Database result: Array
+(
+    [nome] => Joel Paixão Adão 
+    [tel] => 912345678
+)
+
+2025-05-21 14:25:07 - REQUEST: Array
+(
+    [user_id] => 2
+)
+
+Querying database for user_id: 2
+Database result: Array
+(
+    [nome] => Bráulio Da Cruz Cândido 
+    [tel] => 987654321
+)
+

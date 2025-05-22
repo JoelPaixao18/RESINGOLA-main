@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, TouchableOpacity, SafeAreaView, Modal, Animated, ActivityIndicator  } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, SafeAreaView, Modal, Animated, ActivityIndicator, Image, Alert  } from "react-native";
 import styles from "../styles/Profile";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/Ionicons";
 import { RefreshControl } from 'react-native'; // Adicione este import
+
 
 export default function UserProfile() {
   const [user, setUser] = useState(null);
@@ -14,6 +15,8 @@ export default function UserProfile() {
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
   const [refreshing, setRefreshing] = useState(false); // Estado para controlar o refresh
+
+  const baseImageUrl = "http://192.168.20.217/RESINGOLA-main/Backend/uploads/";
 
    // Função para atualizar os dados
   const onRefresh = React.useCallback(() => {
@@ -158,29 +161,29 @@ export default function UserProfile() {
   };
 
   const handleDeleteProperty = async (propertyId) => {
-    try {
-      const response = await fetch(`http://192.168.20.217/RESINGOLA-main/Backend/deletar.php`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ id: propertyId })
-      });
-  
-      const result = await response.json();
-  
-      if (result.status === 'success') {
-        // Atualiza a lista removendo o imóvel deletado
-        setUserProperties(prev => prev.filter(prop => prop.id !== propertyId));
-        Alert.alert('Sucesso', 'Imóvel removido com sucesso');
-      } else {
-        Alert.alert('Erro', result.message || 'Falha ao remover imóvel');
-      }
-    } catch (error) {
-      console.error('Erro ao deletar imóvel:', error);
-      Alert.alert('Erro', 'Não foi possível remover o imóvel');
+  try {
+    const response = await fetch(`http://192.168.20.217/RESINGOLA-main/Backend/deletar.php`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ id: propertyId })
+    });
+
+    const result = await response.json();
+
+    if (result.status === 'success') {
+      // Atualiza a lista removendo o imóvel deletado
+      setUserProperties(prev => prev.filter(prop => prop.id !== propertyId));
+      Alert.alert('Sucesso', 'Imóvel removido com sucesso');
+    } else {
+      Alert.alert('Erro', result.message || 'Falha ao remover imóvel');
     }
-  };
+  } catch (error) {
+    console.error('Erro ao deletar imóvel:', error);
+    Alert.alert('Erro', 'Não foi possível remover o imóvel');
+  }
+};
 
   const renderEmptyList = () => (
     <View style={styles.emptyContainer}>
@@ -284,62 +287,121 @@ export default function UserProfile() {
           </View>
           
           <FlatList
-            contentContainerStyle={styles.propertyList}
-            data={userProperties}
-            keyExtractor={(item) => item.id.toString()}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                colors={['#1A7526']} // Cor do spinner (verde)
-                tintColor="#1A7526" // Cor do spinner (iOS)
-              />}
-            ListEmptyComponent={renderEmptyList}
-            showsVerticalScrollIndicator={false}
-            renderItem={({ item }) => (
-              <View style={styles.propertyCard}>
-                <View style={styles.propertyImagePlaceholder}>
-                  <Icon name="home" size={40} color="#3498db" />
-                </View>
-                
-                <View style={styles.propertyDetails}>
-                  <Text style={styles.propertyTitle} numberOfLines={1}>{item.titulo || "Sem título"}</Text>
-                  
-                  <View style={styles.propertyMeta}>
-                    <View style={styles.propertyMetaItem}>
-                      <Icon name="location-outline" size={14} color="#666" />
-                      <Text style={styles.propertyMetaText}>{item.localizacao || "Local não informado"}</Text>
-                    </View>
-                    <View style={styles.propertyMetaItem}>
-                      <Icon name="pricetag-outline" size={14} color="#666" />
-                      <Text style={styles.propertyMetaText}>{item.preco ? `Kz ${item.preco}` : "Preço não informado"}</Text>
-                    </View>
-                    <View style={styles.propertyMetaItem}>
-                      <Icon name="business-outline" size={14} color="#666" />
-                      <Text style={styles.propertyMetaText}>{item.tipo || "Tipo não informado"}</Text>
-                    </View>
+  contentContainerStyle={styles.propertyList}
+  data={userProperties}
+  keyExtractor={(item) => item.id.toString()}
+  refreshControl={
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      colors={['#1A7526']}
+      tintColor="#1A7526"
+    />
+  }
+  ListEmptyComponent={renderEmptyList}
+  showsVerticalScrollIndicator={false}
+  renderItem={({ item }) => ( // Use destructuring corretamente aqui
+    console.log('Item atual:', item),
+    console.log('URL da primeira imagem:', item.imagens?.[0]),
+    <View style={styles.propertyCard}>
+      {/* Carrossel de imagens */}
+      {item.imagens && item.imagens.length > 0 ? (
+        <View style={styles.imageCarousel}>
+          <FlatList
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            data={item.imagens}
+            keyExtractor={(img, index) => index.toString()}
+            renderItem={({ item: img, index }) => ( // Renomeie para imgUrl aqui
+              <View style={styles.imageContainer}>
+                <Image
+                  source={{ uri: img }}
+                  style={styles.propertyImage}
+                  resizeMode="cover"
+                  onError={(e) => console.log('Erro ao carregar imagem:', e.nativeEvent.error)}
+                />
+                {item.imagens.length > 1 && (
+                  <View style={styles.imageCounter}>
+                    <Text style={styles.imageCounterText}>
+                      {`${index + 1}/${item.imagens.length}`}
+                    </Text>
                   </View>
-                  
-                  <View style={styles.propertyActions}>
-                    <TouchableOpacity 
-                      style={[styles.propertyActionButton, styles.editButton]}
-                      onPress={() => handleEditProperty(item)}
-                    >
-                      <Icon name="create-outline" size={16} color="#fff" />
-                      <Text style={styles.propertyActionText}>Editar</Text>
-                    </TouchableOpacity>
-                    
-                    <TouchableOpacity 
-                      style={[styles.propertyActionButton, styles.deleteButton]}
-                      onPress={() => handleDeleteProperty(item.id)}
-                    >
-                      <Icon name="trash-outline" size={16} color="#fff" />
-                      <Text style={styles.propertyActionText}>Remover</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
+                )}
               </View>
             )}
+          />
+        </View>
+      ) : (
+        <View style={styles.propertyImagesPlaceholder}>
+          <Icon name="home" size={40} color="#3498db" />
+        </View>
+      )}
+
+    <View style={styles.propertyDetails}>
+      <View style={styles.propertyHeader}>
+        <Text style={styles.propertyTitle} numberOfLines={1}>
+          {item.tipo || "Tipo não informado"}
+        </Text>
+        <Text style={styles.propertyPrice}>{item.preco}</Text>
+      </View>
+      
+      <View style={styles.propertyMetaContainer}>
+        {item.area && (
+          <View style={styles.propertyMetaItem}>
+            <Icon name="resize-outline" size={16} color="#555" />
+            <Text style={styles.propertyMetaText}>{item.area} m²</Text>
+          </View>
+        )}
+        
+        {item.quartos && (
+          <View style={styles.propertyMetaItem}>
+            <Icon name="bed-outline" size={16} color="#555" />
+            <Text style={styles.propertyMetaText}>{item.quartos} quartos</Text>
+          </View>
+        )}
+        
+        {item.banheiros && (
+          <View style={styles.propertyMetaItem}>
+            <Icon name="water-outline" size={16} color="#555" />
+            <Text style={styles.propertyMetaText}>{item.banheiros} banheiros</Text>
+          </View>
+        )}
+      </View>
+      
+      <View style={styles.propertyLocation}>
+        <Icon name="location-outline" size={16} color="#555" />
+        <Text style={styles.propertyLocationText} numberOfLines={1}>
+          {item.localizacao || "Local não informado"}
+        </Text>
+      </View>
+      
+      <View style={styles.propertyDescription}>
+        <Text style={styles.propertyDescriptionText} numberOfLines={5}>
+          {item.descricao || "Nenhuma descrição fornecida"}
+        </Text>
+      </View>
+      
+      <View style={styles.propertyActions}>
+        <TouchableOpacity 
+          style={[styles.propertyActionButton, styles.editButton]}
+          onPress={() => handleEditProperty(item)}
+        >
+          <Icon name="create-outline" size={16} color="#fff" />
+          <Text style={styles.propertyActionText}>Editar</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={[styles.propertyActionButton, styles.deleteButton]}
+          onPress={() => handleDeleteProperty(item.id)}
+        >
+          <Icon name="trash-outline" size={16} color="#fff" />
+          <Text style={styles.propertyActionText}>Remover</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </View>
+)}
           />
         </View>
       )}

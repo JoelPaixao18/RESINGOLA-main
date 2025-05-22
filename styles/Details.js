@@ -9,103 +9,200 @@ const styles = StyleSheet.create({
   },
   header: {
     width: '100%',
-    height: SCREEN_HEIGHT * 0.4,
+    height: SCREEN_HEIGHT * 0.35,
+    position: 'relative',
   },
   headerImage: {
-    width: SCREEN_WIDTH * 0.88,
-    height: SCREEN_HEIGHT * 0.27,
-    position: 'absolute',
-    marginHorizontal: 25,
-    top: SCREEN_HEIGHT * 0.13,
-    borderRadius: SCREEN_WIDTH * 0.03,
+    width: '100%',
+    height: '100%',
   },
   headerInfoButtons: {
-    marginTop: SCREEN_HEIGHT * 0.06,
-    paddingHorizontal: SCREEN_WIDTH * 0.08,
+    position: 'absolute',
+    top: SCREEN_HEIGHT * 0.05,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   headerInfoButtonsText: {
-    fontSize: SCREEN_WIDTH * 0.04,
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#fff',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
   },
-  headerInfoButtonsRight: {
-    flexDirection: 'row',
-    gap: SCREEN_WIDTH * 0.025,
+  scrollContainer: {
+    paddingBottom: 30,
   },
   infoNameText: {
-    fontSize: SCREEN_WIDTH * 0.07,
+    fontSize: 24,
     fontWeight: '600',
-    paddingHorizontal: SCREEN_WIDTH * 0.1,
-    paddingTop: SCREEN_HEIGHT * 0.025,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    color: '#333',
+  },
+  priceContainer: {
+    paddingHorizontal: 20,
+    marginTop: 5,
+  },
+  priceText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1A7526',
   },
   contentAddress: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SCREEN_WIDTH * 0.025,
-    paddingHorizontal: SCREEN_WIDTH * 0.08,
-    paddingTop: SCREEN_HEIGHT * 0.02,
+    paddingHorizontal: 20,
+    marginTop: 10,
   },
   contentAddressText: {
-    fontSize: SCREEN_WIDTH * 0.03,
-  },
-  contentAddressPrice: {
-    fontSize: SCREEN_WIDTH * 0.045,
-    fontWeight: '400',
-    marginHorizontal: SCREEN_WIDTH * 0.3,
+    fontSize: 16,
+    color: '#666',
+    marginLeft: 5,
   },
   separator: {
     height: 1,
-    marginHorizontal: SCREEN_WIDTH * 0.08,
-    marginTop: SCREEN_HEIGHT * 0.02,
-    backgroundColor: '#dddddd',
+    backgroundColor: '#e0e0e0',
+    marginHorizontal: 20,
+    marginVertical: 20,
   },
-  descriptionView: {
-    paddingTop: SCREEN_HEIGHT * 0.025,
-    paddingHorizontal: SCREEN_WIDTH * 0.1,
-    paddingBottom: SCREEN_HEIGHT * 0.025,
+  section: {
+    paddingHorizontal: 20,
+    marginBottom: 25,
   },
-  description: {
-    paddingBottom: SCREEN_HEIGHT * 0.01,
-    fontSize: SCREEN_WIDTH * 0.05,
+  sectionTitle: {
+    fontSize: 18,
     fontWeight: '600',
+    color: '#333',
+    marginBottom: 15,
   },
-  descriptionText: {
-    fontWeight: '400',
-    fontSize: SCREEN_WIDTH * 0.035,
-  },
-  sellerInfo: {
+  featuresGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: SCREEN_WIDTH * 0.1,
-    marginBottom: SCREEN_HEIGHT * 0.03,
   },
-  sellerInfoTextName: {
-    fontSize: SCREEN_WIDTH * 0.04,
+  featureColumn: {
+    width: '48%',
+  },
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  featureText: {
+    fontSize: 15,
+    color: '#555',
+    marginLeft: 8,
+  },
+  featureValue: {
     fontWeight: '600',
+    color: '#333',
   },
-  sellerInfoTextSeller: {
-    fontSize: SCREEN_WIDTH * 0.03,
+  amenitiesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
   },
-  sellerInfoRight: {
-    width: SCREEN_WIDTH * 0.15,
-    height: SCREEN_HEIGHT * 0.06,
-    backgroundColor: 'white',
-    borderRadius: SCREEN_WIDTH * 0.05,
+  descriptionText: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: '#555',
+  },
+  ownerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 15,
+    elevation: 2,
   },
-  button: {
+  ownerInfo: {
+    flex: 1,
+  },
+  ownerName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  ownerLabel: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 3,
+  },
+  contactButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#1A7526',
-    padding: SCREEN_HEIGHT * 0.018,
-    borderRadius: SCREEN_WIDTH * 0.04,
-    alignItems: 'center',
-    margin: SCREEN_WIDTH * 0.065,
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
   },
-  buttonText: {
-    color: 'white',
-    fontSize: SCREEN_WIDTH * 0.04,
-    fontWeight: 'bold',
+  contactButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  noOwnerText: {
+    fontSize: 15,
+    color: '#666',
+    fontStyle: 'italic',
+  },
+
+    carouselImage: {
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT * 0.35,
+  },
+  noImagePlaceholder: {
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT * 0.35,
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageIndicatorContainer: {
+    position: 'absolute',
+    top: SCREEN_HEIGHT * 0.05,
+    right: 20,
+    zIndex: 2,
+  },
+  imageIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 15,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+  },
+  imageIndicatorText: {
+    color: '#fff',
+    marginLeft: 5,
+    fontSize: 14,
+  },
+  
+  statusText: {
+    fontSize: 14,
+    color: '#666',
+    marginLeft: 10,
+    fontStyle: 'italic',
+  },
+  booleanFeature: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 15,
+    marginBottom: 10,
+  },
+  booleanFeatureText: {
+    fontSize: 14,
+    color: '#555',
+    marginLeft: 5,
+  },
+  amenitiesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 5,
   },
 });
 

@@ -56,6 +56,9 @@ try {
 
         $imagePaths[] = $filename;
     }
+    if (isset($_POST['description']) && strlen($_POST['description']) > 500) {
+        throw new Exception('A descrição não pode exceder 500 caracteres');
+    }
 
     // Obter outros dados do formulário
     $data = [
@@ -77,6 +80,7 @@ try {
         'latitude' => $_POST['latitude'],
         'longitude' => $_POST['longitude'],
         'price' => $_POST['price'],
+        'description' => $_POST['description'] ?? '',
         'user_id' => $_POST['user_id']
     ];
 
@@ -85,12 +89,12 @@ try {
         images, houseSize, status, typeResi, typology,
         livingRoomCount, kitchenCount, hasWater, hasElectricity,
         bathroomCount, quintal, andares, garagem, varanda,
-        location, latitude, longitude, price, user_id
+        location, latitude, longitude, price, description, user_id
     ) VALUES (
         :images, :houseSize, :status, :typeResi, :typology,
         :livingRoomCount, :kitchenCount, :hasWater, :hasElectricity,
         :bathroomCount, :quintal, :andares, :garagem, :varanda,
-        :location, :latitude, :longitude, :price, :user_id
+        :location, :latitude, :longitude, :price, :description, :user_id
     )";
 
     $stmt = $pdo->prepare($sql);

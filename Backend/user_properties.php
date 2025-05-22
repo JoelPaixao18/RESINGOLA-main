@@ -1,10 +1,12 @@
+
 <?php
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
 
-include_once '../Backend/db.php'; // Certifique-se de que o caminho está correto
+include_once '../Backend/db.php';
+
+// URL BASE CORRETA (igual ao Home.js)
+$baseImageUrl = "http://192.168.20.217/RESINGOLA-main/Backend/uploads/";
 
 try {
     if (!isset($_GET['user_id'])) {
@@ -20,7 +22,7 @@ try {
         exit;
     }
 
-    $query = "SELECT id, typeResi, price, location, houseSize, images 
+    $query = "SELECT id, typeResi, price, location, houseSize, images, description, bathroomCount, typology
               FROM residencia 
               WHERE user_id = :user_id 
               LIMIT 10";
@@ -36,13 +38,31 @@ try {
 
     $formattedProperties = [];
     foreach ($properties as $property) {
+        // DECODIFICA CORRETAMENTE AS IMAGENS
+        $images = [];
+        if (!empty($property['images'])) {
+            $decoded = json_decode($property['images'], true);
+            
+            // Verifica se é um array válido
+            if (is_array($decoded)) {
+                $images = array_map(function($img) use ($baseImageUrl) {
+                    // Remove caminhos absolutos se existirem
+                    $cleanImg = basename($img);
+                    return $baseImageUrl . $cleanImg;
+                }, $decoded);
+            }
+        }
+
         $formattedProperties[] = [
-            'id' => $property['id'] ?? null,
+            'id' => $property['id'],
+            'quartos' => $property['typology'] ?? 'Nºs de quartos não especificados',
+            'banheiros' => $property['bathroomCount'] ?? 'Nºs de banheiros não especificados',
             'tipo' => $property['typeResi'] ?? 'Não especificado',
-            'preco' => isset($property['price']) ? 'R$ ' . number_format($property['price'], 2, ',', '.') : 'Preço não informado',
+            'preco' => isset($property['price']) ? 'kz ' . number_format($property['price'], 2, ',', '.') : 'Preço não informado',
             'localizacao' => $property['location'] ?? 'Localização não informada',
             'area' => $property['houseSize'] ?? 0,
-            'imagens' => !empty($property['images']) ? json_decode($property['images'], true) : []
+            'descricao' => $property['description'] ?? 'Nenhuma descricão fornecida',
+            'imagens' => $images // JÁ COM URL COMPLETA
         ];
     }
 
@@ -56,7 +76,6 @@ try {
     echo json_encode([
         'status' => 'error',
         'message' => 'Erro interno no servidor'
-        // Em produção, o campo 'system_message' deve ser removido
     ]);
 }
 ?>
