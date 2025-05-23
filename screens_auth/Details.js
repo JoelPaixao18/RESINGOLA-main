@@ -1,4 +1,4 @@
-import { Bookmark, CaretLeft, MapPin, PhoneCall, Drop, Lightning, House, Ruler, Car, Stairs, Tree, Images } from 'phosphor-react-native';
+import { Bookmark, CaretLeft, MapPin, PhoneCall, Drop, Lightning, House, Ruler, Car, Stairs, Tree, Images, Coffee, Armchair, DoorOpen } from 'phosphor-react-native';
 import React, { useEffect, useState } from 'react';
 import { Image, Text, View, ScrollView, TouchableOpacity, Linking, ActivityIndicator, Dimensions, FlatList } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -8,10 +8,25 @@ import { API_URL } from '../config';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
+const normalizeResidenceData = (residence) => {
+  // Se residence já tem user_id, não precisa normalizar
+  if (residence.user_id) return residence;
+  
+  // Caso contrário, verifica se tem usuario_id (que vem da Home)
+  return {
+    ...residence,
+    user_id: residence.user_id || null
+  };
+};
+
 function Details() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { residence } = route.params;
+  const { residence: rawResidence } = route.params;
+  
+  // Normaliza os dados do imóvel
+  const residence = normalizeResidenceData(rawResidence);
+  
   const [owner, setOwner] = useState(null);
   const [loadingOwner, setLoadingOwner] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -28,28 +43,41 @@ function Details() {
   useEffect(() => {
     const fetchOwnerData = async () => {
       try {
-        const response = await fetch(`${API_URL}/get_user.php?user_id=${residence.user_id}`);
+        // Usa explicitamente user_id, já que foi confirmado como o campo correto
+        const ownerId = residence?.user_id;
+
+        if (!ownerId) {
+          console.log('user_id não encontrado no objeto residence:', JSON.stringify(residence, null, 2));
+          setOwner(null);
+          setLoadingOwner(false);
+          return;
+        }
+
+        console.log(`Buscando dados do proprietário com user_id: ${ownerId}`);
+        const response = await fetch(`${API_URL}/get_user.php?user_id=${ownerId}`);
         const data = await response.json();
         
-        if (data.status === 'success') {
+        console.log('Resposta da API get_user.php:', JSON.stringify(data, null, 2));
+        
+        if (data.status === 'success' && data.user) {
           setOwner({
-            nome: data.user.nome,
-            tel: data.user.tel
+            nome: data.user.nome || data.user.name || data.user.full_name || 'Proprietário',
+            tel: data.user.tel || data.user.telefone || data.user.phone || 'Número não disponível'
           });
+        } else {
+          console.log('Resposta da API não contém dados válidos do proprietário:', data);
+          setOwner(null);
         }
       } catch (error) {
-        console.error('Error fetching owner data:', error);
+        console.error('Erro ao buscar dados do proprietário:', error.message, error.stack);
+        setOwner(null);
       } finally {
         setLoadingOwner(false);
       }
     };
 
-    if (residence?.user_id) {
-      fetchOwnerData();
-    } else {
-      setLoadingOwner(false);
-    }
-  }, [residence?.user_id]);
+    fetchOwnerData();
+  }, [residence]);
 
   const handlePhoneCall = (phoneNumber) => {
     Linking.openURL(`tel:${phoneNumber}`);
@@ -163,7 +191,13 @@ function Details() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <Text style={styles.infoNameText}>{residence.typology || residence.typeResi}</Text>
+        {/* Status e Tipo */}
+        <View style={styles.statusContainer}>
+          <Text style={styles.statusText}>{residence.status}</Text>
+          <Text style={styles.typeText}>{residence.typeResi}</Text>
+        </View>
+
+        <Text style={styles.infoNameText}>{residence.typology}</Text>
         
         <View style={styles.priceContainer}>
           <Text style={styles.priceText}>{residence.price}</Text>
@@ -182,13 +216,13 @@ function Details() {
           <View style={styles.featuresGrid}>
             <View style={styles.featureColumn}>
               {renderFeature(<House size={20} color="#1A7526" />, 'Tipo', residence.typeResi)}
-              {renderFeature(<Ruler size={20} color="#1A7526" />, 'Área', residence.houseSize)}
+              {renderFeature(<Ruler size={20} color="#1A7526" />, 'Área', `${residence.houseSize} m²`)}
               {renderFeature(<Stairs size={20} color="#1A7526" />, 'Andares', residence.andares || '1')}
             </View>
             <View style={styles.featureColumn}>
-              {renderFeature(<House size={20} color="#1A7526" />, 'Quartos', residence.bedroomCount || 'N/A')}
-              {renderFeature(<Drop size={20} color="#1A7526" />, 'Banheiros', residence.bathroomCount)}
-              {renderFeature(<Car size={20} color="#1A7526" />, 'Garagens', residence.garagem || '0')}
+              {renderFeature(<Armchair size={20} color="#1A7526" />, 'Salas', residence.livingRoomCount || '0')}
+              {renderFeature(<Coffee size={20} color="#1A7526" />, 'Cozinhas', residence.kitchenCount || '0')}
+              {renderFeature(<Drop size={20} color="#1A7526" />, 'Banheiros', residence.bathroomCount || '0')}
             </View>
           </View>
         </View>
@@ -197,10 +231,36 @@ function Details() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Comodidades</Text>
           <View style={styles.amenitiesContainer}>
-            {residence.hasWater && renderFeature(<Drop size={20} color="#1A7526" />, 'Água', 'Disponível')}
-            {residence.hasElectricity && renderFeature(<Lightning size={20} color="#1A7526" />, 'Energia', 'Disponível')}
-            {residence.quintal && renderFeature(<Tree size={20} color="#1A7526" />, 'Quintal', 'Sim')}
-            {residence.varanda && renderFeature(<House size={20} color="#1A7526" />, 'Varanda', 'Sim')}
+            {residence.hasWater && (
+              <View style={styles.amenityItem}>
+                <Drop size={20} color="#1A7526" />
+                <Text style={styles.amenityText}>Água</Text>
+              </View>
+            )}
+            {residence.hasElectricity && (
+              <View style={styles.amenityItem}>
+                <Lightning size={20} color="#1A7526" />
+                <Text style={styles.amenityText}>Energia</Text>
+              </View>
+            )}
+            {residence.garagem && (
+              <View style={styles.amenityItem}>
+                <Car size={20} color="#1A7526" />
+                <Text style={styles.amenityText}>Garagem</Text>
+              </View>
+            )}
+            {residence.quintal && (
+              <View style={styles.amenityItem}>
+                <Tree size={20} color="#1A7526" />
+                <Text style={styles.amenityText}>Quintal</Text>
+              </View>
+            )}
+            {residence.varanda && (
+              <View style={styles.amenityItem}>
+                <DoorOpen size={20} color="#1A7526" />
+                <Text style={styles.amenityText}>Varanda</Text>
+              </View>
+            )}
           </View>
         </View>
 

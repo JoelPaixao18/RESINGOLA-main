@@ -53,3 +53,115 @@ Database result: Array
     [tel] => 987654321
 )
 
+2025-05-23 11:37:02 - REQUEST: Array
+(
+    [user_id] => 3
+)
+
+Querying database for user_id: 3
+Database result: Array
+(
+    [nome] => Isabel Carneiro Da Cruz
+    [tel] => 932465542
+)
+
+2025-05-23 12:28:28 - REQUEST: Array
+(
+    [user_id] => 3
+)
+
+Querying database for user_id: 3
+Database result: Array
+(
+    [nome] => Isabel Carneiro Da Cruz
+    [tel] => 932465542
+)
+
+2025-05-23 12:42:06 - REQUEST: Array
+(
+    [user_id] => 3
+)
+
+Querying database for user_id: 3
+Database result: Array
+(
+    [nome] => Isabel Carneiro Da Cruz
+    [tel] => 932465542
+)
+
+2025-05-23 12:43:45 - REQUEST: Array
+(
+    [user_id] => 3
+)
+
+Querying database for user_id: 3
+Database result: Array
+(
+    [nome] => Isabel Carneiro Da Cruz
+    [tel] => 932465542
+)
+
+2025-05-23 12:54:34 - REQUEST: Array
+(
+    [user_id] => 3
+)
+
+Querying database for user_id: 3
+Database result: Array
+(
+    [nome] => Isabel Carneiro Da Cruz
+    [tel] => 932465542
+)
+
+2025-05-23 12:58:01 - REQUEST: Array
+(
+    [user_id] => 3
+)
+
+Querying database for user_id: 3
+Database result: Array
+(
+    [nome] => Isabel Carneiro Da Cruz
+    [tel] => 932465542
+)
+
+2025-05-23 13:06:42 - REQUEST: Array
+(
+    [user_id] => 28
+)
+
+Querying database for user_id: 28
+Database result: 
+User not found
+2025-05-23 13:09:31 - REQUEST: Array
+(
+    [user_id] => 28
+)
+
+Querying database for user_id: 28
+Database result: 
+User not found
+2025-05-23 13:09:44 - REQUEST: Array
+(
+    [user_id] => 28
+)
+
+Querying database for user_id: 28
+Database result: 
+User not found
+2025-05-23 13:09:48 - REQUEST: Array
+(
+    [user_id] => 28
+)
+
+Querying database for user_id: 28
+Database result: 
+User not found
+2025-05-23 13:10:01 - REQUEST: Array
+(
+    [user_id] => 28
+)
+
+Querying database for user_id: 28
+Database result: 
+User not found

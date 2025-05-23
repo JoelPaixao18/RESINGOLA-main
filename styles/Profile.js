@@ -113,14 +113,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#f0f0f0',
 },
-imageCarousel: {
-    height: 180,
+imageContainer: {
     width: '100%',
-    position: 'relative',
+    height: 200,
+    backgroundColor: '#f0f0f0',
+    overflow: 'hidden',
 },
 propertyImage: {
     width: '100%',
-    height: 180,
+    height: '100%',
+    backgroundColor: '#e1e1e1',
+},
+imageCarousel: {
+    width: '100%',
+    height: 200,
+    backgroundColor: '#f5f5f5',
 },
 imageCounter: {
     position: 'absolute',

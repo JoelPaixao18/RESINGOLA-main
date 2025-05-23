@@ -1,56 +1,27 @@
 import { StyleSheet, Dimensions } from 'react-native';
+import { RFPercentage, RFValue } from "react-native-responsive-fontsize";
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const screenWidth = Dimensions.get('window').width;
+const { width, height } = Dimensions.get('window');
 
-export default StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#f5f5f5',
   },
   header: {
-    marginTop: SCREEN_HEIGHT * 0.02,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: SCREEN_WIDTH * 0.04,
+    paddingHorizontal: RFPercentage(2),
+    paddingTop: RFPercentage(5),
+    paddingBottom: RFPercentage(2),
+    backgroundColor: '#fff',
   },
   headerLeft: {
-    width: SCREEN_WIDTH * 0.13,
+    flex: 1,
   },
   headerRight: {
-    width: SCREEN_WIDTH * 0.13,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f2f2f2',
-    borderRadius: 20,
-    paddingHorizontal: SCREEN_WIDTH * 0.04,
-    marginHorizontal: SCREEN_WIDTH * 0.04,
-    marginBottom: SCREEN_HEIGHT * 0.03,
-  },
-  input: {
     flex: 1,
-    height: SCREEN_HEIGHT * 0.06,
-    paddingLeft: SCREEN_WIDTH * 0.025,
-    fontSize: SCREEN_WIDTH * 0.04,
-  },
-  typeHouseContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingHorizontal: 10,
-    marginBottom: 20,
-  },
-  typeHouseButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#ccc',
-  },
-  typeHouseText: {
-    fontSize: 14,
-    color: '#333',
+    alignItems: 'flex-end',
   },
   content: {
     flex: 1,
@@ -59,89 +30,236 @@ export default StyleSheet.create({
     flex: 1,
   },
   scrollContentContainer: {
-    paddingBottom: SCREEN_HEIGHT * 0.025,
+    paddingBottom: RFPercentage(2),
   },
-  gridContainer: {
+  
+  // Estilo da barra de pesquisa
+  inputContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    paddingHorizontal: SCREEN_WIDTH * 0.025,
-  },
-  card: {
-    width: SCREEN_WIDTH / 2 - SCREEN_WIDTH * 0.05,
+    alignItems: 'center',
     backgroundColor: '#fff',
-    borderRadius: 10,
-    marginBottom: SCREEN_HEIGHT * 0.025,
+    borderRadius: RFValue(12),
+    paddingHorizontal: RFValue(15),
+    paddingVertical: RFValue(10),
+    marginHorizontal: RFPercentage(2),
+    marginBottom: RFPercentage(2),
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  input: {
+    flex: 1,
+    marginLeft: RFValue(10),
+    fontSize: RFValue(14),
+    color: '#333',
+  },
+  
+  // Container dos tipos de casa
+  typeHouseContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: RFPercentage(2),
+    marginBottom: RFPercentage(2),
+  },
+  typeHouseButton: {
+    paddingHorizontal: RFValue(16),
+    paddingVertical: RFValue(8),
+    borderRadius: RFValue(20),
+    backgroundColor: '#fff',
+    marginRight: RFValue(10),
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
     elevation: 3,
+  },
+  activeFilterButton: {
+    backgroundColor: '#1A7526',
+  },
+  typeHouseText: {
+    fontSize: RFValue(14),
+    color: '#666',
+    fontWeight: '500',
+  },
+  activeFilterText: {
+    color: '#fff',
+  },
+  
+  // Grid de cards
+  gridContainer: {
+    paddingHorizontal: RFPercentage(2),
+  },
+  
+  // Card individual
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: RFValue(15),
+    marginBottom: RFPercentage(2),
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+    overflow: 'hidden',
   },
   cardButton: {
     width: '100%',
   },
   cardImage: {
     width: '100%',
-    height: SCREEN_HEIGHT * 0.2,
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
+    height: RFValue(200),
+    borderTopLeftRadius: RFValue(15),
+    borderTopRightRadius: RFValue(15),
   },
+  
+  // Informações do card
   cardInfo: {
-    padding: SCREEN_WIDTH * 0.025,
+    padding: RFPercentage(2),
   },
   cardInfoTitle: {
-    fontSize: SCREEN_WIDTH * 0.04,
+    fontSize: RFValue(18),
     fontWeight: 'bold',
-    marginBottom: SCREEN_HEIGHT * 0.005,
+    color: '#333',
+    marginBottom: RFValue(4),
   },
   cardInfoSubTitle: {
-    fontSize: SCREEN_WIDTH * 0.035,
+    fontSize: RFValue(14),
     color: '#666',
+    marginBottom: RFValue(8),
   },
-  cardInfoBuy: {
-    flexDirection: 'column', // <-- muda de 'row' para 'column'
-    alignItems: 'flex-start', // alinha à esquerda (opcional)
-    padding: SCREEN_WIDTH * 0.025,
+  
+  // Seção de detalhes do imóvel
+  propertyDetailsContainer: {
+    marginTop: RFValue(8),
+    paddingTop: RFValue(8),
     borderTopWidth: 1,
-    borderTopColor: '#f2f2f2',
-    gap: 8, // adiciona espaço entre preço e botões (pode ajustar)
-  },  
+    borderTopColor: '#eee',
+  },
+  propertyTypeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: RFValue(8),
+  },
+  propertyTypeText: {
+    fontSize: RFValue(14),
+    color: '#1A7526',
+    fontWeight: '600',
+    marginRight: RFValue(8),
+  },
+  propertyFeatures: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: RFValue(8),
+  },
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+    paddingHorizontal: RFValue(8),
+    paddingVertical: RFValue(4),
+    borderRadius: RFValue(6),
+    marginRight: RFValue(8),
+    marginBottom: RFValue(8),
+  },
+  featureText: {
+    fontSize: RFValue(12),
+    color: '#666',
+    marginLeft: RFValue(4),
+  },
+  amenitiesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: RFValue(8),
+  },
+  amenityItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: RFValue(12),
+    marginBottom: RFValue(4),
+  },
+  amenityText: {
+    fontSize: RFValue(12),
+    color: '#666',
+    marginLeft: RFValue(4),
+  },
+  descriptionContainer: {
+    marginTop: RFValue(8),
+    paddingTop: RFValue(8),
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+  },
+  descriptionText: {
+    fontSize: RFValue(12),
+    color: '#666',
+    lineHeight: RFValue(18),
+  },
+  
+  // Seção de preço e status
+  cardInfoBuy: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: RFPercentage(2),
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+    backgroundColor: '#f9f9f9',
+  },
+  priceContainer: {
+    flex: 1,
+  },
+  statusText: {
+    fontSize: RFValue(14),
+    color: '#1A7526',
+    fontWeight: '600',
+    marginBottom: RFValue(4),
+  },
   cardInfoText: {
-    fontSize: SCREEN_WIDTH * 0.04,
+    fontSize: RFValue(16),
     fontWeight: 'bold',
     color: '#333',
   },
-
-  // Adiciona estilos responsivos ao final do arquivo:
-input: {
-  flex: 1,
-  height: SCREEN_HEIGHT * 0.06,
-  paddingLeft: SCREEN_WIDTH * 0.025,
-  fontSize: SCREEN_WIDTH * 0.04,
-},
-cardInfoTitle: {
-  fontSize: SCREEN_WIDTH * 0.04,
-  fontWeight: 'bold',
-  marginBottom: 5,
-},
-cardInfoSubTitle: {
-  fontSize: SCREEN_WIDTH * 0.035,
-  color: '#666',
-},
-cardInfoText: {
-  fontSize: SCREEN_WIDTH * 0.04,
-  fontWeight: 'bold',
-  color: '#333',
-},
-
-activeFilterButton: {
-  backgroundColor: '#007AFF',
-  borderColor: '#007AFF',
-},
-activeFilterText: {
-  color: 'white',
-  fontWeight: 'bold',
-},
-
+  
+  // Botões de ação
+  actionButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  actionButton: {
+    marginLeft: RFValue(15),
+  },
+  
+  // Avatar do usuário
+  userAvatar: {
+    width: RFValue(40),
+    height: RFValue(40),
+    borderRadius: RFValue(20),
+    backgroundColor: '#1A7526',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  userInitials: {
+    color: '#fff',
+    fontSize: RFValue(16),
+    fontWeight: 'bold',
+  },
 });
+
+export default styles;

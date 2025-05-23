@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, TextInput, Pressable, Image, ScrollView, Dimensions, RefreshControl, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StatusBar } from 'expo-status-bar';
-import { MagnifyingGlass, PlusSquare, MinusSquare, X } from 'phosphor-react-native';
+import { MagnifyingGlass, PlusSquare, MinusSquare, X, BookmarkSimple, House, Drop, Lightning, Car, Tree, Stairs, DoorOpen, Bath, Armchair, Coffee } from 'phosphor-react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Alert } from 'react-native';
 import { LayoutAnimation, UIManager, Platform } from 'react-native';
@@ -155,7 +155,14 @@ const Home = ({ route }) => {
   }, []);
 
   const handleDetails = (residence) => {
-    navigation.navigate('Details', { residence });
+    // Garante que todos os possíveis IDs estejam disponíveis
+    const residenceWithIds = {
+      ...residence,
+      user_id: residence.user_id || residence.id,
+      id: residence.id || residence.user_id
+    };
+    
+    navigation.navigate('Details', { residence: residenceWithIds });
   };
 
   const handleProfile = () => {
@@ -164,19 +171,39 @@ const Home = ({ route }) => {
 
   const handleSaveCard = async (card) => {
     try {
-      const savedCardsData = await AsyncStorage.getItem('savedCards');
-      let savedCards = savedCardsData ? JSON.parse(savedCardsData) : [];
-
-      if (savedCards.some((savedCard) => savedCard.id === card.id)) {
-        alert('Este card já foi salvo!');
+      // Verifica se há um usuário logado
+      const userData = await AsyncStorage.getItem('userData');
+      if (!userData) {
+        Alert.alert('Erro', 'Você precisa estar logado para salvar imóveis');
         return;
       }
 
-      savedCards.push(card);
-      await AsyncStorage.setItem('savedCards', JSON.stringify(savedCards));
-      alert('Card salvo com sucesso!');
+      const user = JSON.parse(userData);
+      const savedCardsKey = `savedCards_${user.id}`; // Chave única para cada usuário
+      
+      // Busca os cards salvos do usuário atual
+      const savedCardsData = await AsyncStorage.getItem(savedCardsKey);
+      let savedCards = savedCardsData ? JSON.parse(savedCardsData) : [];
+
+      // Verifica se o card já foi salvo
+      if (savedCards.some((savedCard) => savedCard.id === card.id)) {
+        Alert.alert('Aviso', 'Este imóvel já está salvo em sua lista!');
+        return;
+      }
+
+      // Adiciona o card à lista
+      savedCards.push({
+        ...card,
+        savedAt: new Date().toISOString(), // Adiciona timestamp do salvamento
+        savedBy: user.id // Adiciona ID do usuário que salvou
+      });
+
+      // Salva a lista atualizada
+      await AsyncStorage.setItem(savedCardsKey, JSON.stringify(savedCards));
+      Alert.alert('Sucesso', 'Imóvel salvo com sucesso!');
     } catch (error) {
-      console.error('Erro ao salvar card', error);
+      console.error('Erro ao salvar imóvel:', error);
+      Alert.alert('Erro', 'Não foi possível salvar o imóvel');
     }
   };
 
@@ -334,33 +361,119 @@ const Home = ({ route }) => {
                       cache: 'reload',
                     }}
                     resizeMode="cover"
-                    onError={(e) => {
-                      console.log('Erro ao carregar imagem:', e.nativeEvent.error);
-                      if (residence.images?.[0] && residence.images[0] !== residence.image) {
-                        residence.image = residence.images[0];
-                        setResidences([...residences]);
-                      }
-                    }}
                   />
-
+                  
                   <View style={styles.cardInfo}>
                     <Text style={styles.cardInfoTitle}>{residence.typology}</Text>
-                    <Text style={styles.cardInfoSubTitle}>{formatLocation(residence.location || '')}</Text>
+                    <Text style={styles.cardInfoSubTitle}>{residence.location}</Text>
+
+                    <View style={styles.propertyDetailsContainer}>
+                      <View style={styles.propertyTypeContainer}>
+                        <Text style={styles.propertyTypeText}>{residence.typeResi}</Text>
+                        <Text style={styles.propertyTypeText}>{residence.status}</Text>
+                      </View>
+
+                      <View style={styles.propertyFeatures}>
+                        {residence.houseSize && (
+                          <View style={styles.featureItem}>
+                            <House size={16} color="#666" />
+                            <Text style={styles.featureText}>{residence.houseSize}</Text>
+                          </View>
+                        )}
+                        {residence.livingRoomCount > 0 && (
+                          <View style={styles.featureItem}>
+                            <Armchair size={16} color="#666" />
+                            <Text style={styles.featureText}>{residence.livingRoomCount} Sala(s)</Text>
+                          </View>
+                        )}
+                        {residence.kitchenCount > 0 && (
+                          <View style={styles.featureItem}>
+                            <Coffee size={16} color="#666" />
+                            <Text style={styles.featureText}>{residence.kitchenCount} Cozinha(s)</Text>
+                          </View>
+                        )}
+                        {residence.bathroomCount > 0 && (
+                          <View style={styles.featureItem}>
+                            <Bath size={16} color="#666" />
+                            <Text style={styles.featureText}>{residence.bathroomCount} WC(s)</Text>
+                          </View>
+                        )}
+                      </View>
+
+                      <View style={styles.amenitiesContainer}>
+                        {residence.hasWater && (
+                          <View style={styles.amenityItem}>
+                            <Drop size={16} color="#1A7526" />
+                            <Text style={styles.amenityText}>Água</Text>
+                          </View>
+                        )}
+                        {residence.hasElectricity && (
+                          <View style={styles.amenityItem}>
+                            <Lightning size={16} color="#1A7526" />
+                            <Text style={styles.amenityText}>Energia</Text>
+                          </View>
+                        )}
+                        {residence.garagem && (
+                          <View style={styles.amenityItem}>
+                            <Car size={16} color="#1A7526" />
+                            <Text style={styles.amenityText}>Garagem</Text>
+                          </View>
+                        )}
+                        {residence.quintal && (
+                          <View style={styles.amenityItem}>
+                            <Tree size={16} color="#1A7526" />
+                            <Text style={styles.amenityText}>Quintal</Text>
+                          </View>
+                        )}
+                        {residence.varanda && (
+                          <View style={styles.amenityItem}>
+                            <DoorOpen size={16} color="#1A7526" />
+                            <Text style={styles.amenityText}>Varanda</Text>
+                          </View>
+                        )}
+                        {residence.andares > 1 && (
+                          <View style={styles.amenityItem}>
+                            <Stairs size={16} color="#1A7526" />
+                            <Text style={styles.amenityText}>{residence.andares} Andares</Text>
+                          </View>
+                        )}
+                      </View>
+
+                      {residence.description && (
+                        <View style={styles.descriptionContainer}>
+                          <Text style={styles.descriptionText} numberOfLines={3}>
+                            {residence.description}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
                   </View>
                 </Pressable>
-                <View style={styles.cardInfoBuy}>
-                  <Text style={styles.cardInfoText}>{residence.status}</Text>
-                  <Text style={styles.cardInfoText}>{residence.price}</Text>
 
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}>
-                    <Pressable onPress={() => handleSaveCard(residence)}>
-                      <PlusSquare size={40} color='#00FF38' weight='fill' />
+                <View style={styles.cardInfoBuy}>
+                  <View style={styles.priceContainer}>
+                    <Text style={styles.cardInfoText}>{residence.price}</Text>
+                  </View>
+
+                  <View style={styles.actionButtons}>
+                    <Pressable 
+                      style={styles.actionButton}
+                      onPress={() => handleSaveCard(residence)}
+                    >
+                      <BookmarkSimple 
+                        size={28} 
+                        color='#1A7526' 
+                        weight='bold'
+                      />
                     </Pressable>
-  
+
                     {route.params?.userData?.id && residence.usuario_id && 
                     route.params.userData.id.toString() === residence.usuario_id.toString() && (
-                      <Pressable onPress={() => handleDeleteCard(residence.id)}>
-                        <MinusSquare size={40} color='#FF0000' weight='fill' />
+                      <Pressable 
+                        style={styles.actionButton}
+                        onPress={() => handleDeleteCard(residence.id)}
+                      >
+                        <MinusSquare size={28} color='#FF0000' weight='fill' />
                       </Pressable>
                     )}
                   </View>

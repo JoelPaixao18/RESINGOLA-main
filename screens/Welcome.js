@@ -21,7 +21,7 @@ export default function Welcome() {
                     backgroundColor: themeColors.verde, 
                     padding: 6, 
                     borderRadius: 8, 
-                    marginVertical: 25,
+                    marginVertical: 2,
                     width: '80%', 
                     alignSelf: 'center' }}>
                 <Text 
@@ -29,7 +29,7 @@ export default function Welcome() {
                     Sign up
                 </Text>
             </TouchableOpacity>
-            <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 6,}}>
                 <Text 
                     style={{ color: themeColors.text, fontSize: 15, marginVertical: 20, }}>
                         Já tem uma conta? 

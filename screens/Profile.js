@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, TouchableOpacity, SafeAreaView, Modal, Animated, ActivityIndicator, Image, Alert  } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, SafeAreaView, Modal, Animated, ActivityIndicator, Image, Alert } from "react-native";
 import styles from "../styles/Profile";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/Ionicons";
-import { RefreshControl } from 'react-native'; // Adicione este import
-
+import { RefreshControl } from 'react-native';
 
 export default function UserProfile() {
   const [user, setUser] = useState(null);
@@ -14,11 +13,11 @@ export default function UserProfile() {
   const [modalAnim] = useState(new Animated.Value(0));
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
-  const [refreshing, setRefreshing] = useState(false); // Estado para controlar o refresh
+  const [refreshing, setRefreshing] = useState(false);
 
-  const baseImageUrl = "http://192.168.20.217/RESINGOLA-main/Backend/uploads/";
+  const baseImageUrl = "http://192.168.20.217/RESINGOLA-main/uploads/";
 
-   // Função para atualizar os dados
+  // Função para atualizar os dados
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     
@@ -300,41 +299,55 @@ export default function UserProfile() {
   }
   ListEmptyComponent={renderEmptyList}
   showsVerticalScrollIndicator={false}
-  renderItem={({ item }) => ( // Use destructuring corretamente aqui
-    console.log('Item atual:', item),
-    console.log('URL da primeira imagem:', item.imagens?.[0]),
+  renderItem={({ item }) => (
     <View style={styles.propertyCard}>
       {/* Carrossel de imagens */}
       {item.imagens && item.imagens.length > 0 ? (
         <View style={styles.imageCarousel}>
+          {console.log('Dados do item:', JSON.stringify(item, null, 2))}
           <FlatList
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
             data={item.imagens}
-            keyExtractor={(img, index) => index.toString()}
-            renderItem={({ item: img, index }) => ( // Renomeie para imgUrl aqui
-              <View style={styles.imageContainer}>
-                <Image
-                  source={{ uri: img }}
-                  style={styles.propertyImage}
-                  resizeMode="cover"
-                  onError={(e) => console.log('Erro ao carregar imagem:', e.nativeEvent.error)}
-                />
-                {item.imagens.length > 1 && (
-                  <View style={styles.imageCounter}>
-                    <Text style={styles.imageCounterText}>
-                      {`${index + 1}/${item.imagens.length}`}
-                    </Text>
-                  </View>
-                )}
-              </View>
-            )}
+            keyExtractor={(imgName, index) => index.toString()}
+            renderItem={({ item: imgName, index }) => {
+              const fullImageUrl = baseImageUrl + imgName;
+              console.log('Tentando carregar imagem:', fullImageUrl);
+              return (
+                <View style={styles.imageContainer}>
+                  <Image
+                    source={{ 
+                      uri: fullImageUrl,
+                      cache: 'reload'
+                    }}
+                    style={styles.propertyImage}
+                    resizeMode="cover"
+                    onLoadStart={() => console.log('Iniciando carregamento da imagem:', fullImageUrl)}
+                    onLoadEnd={() => console.log('Finalizou carregamento da imagem:', fullImageUrl)}
+                    onError={(e) => {
+                      console.error('Erro ao carregar imagem:', {
+                        url: fullImageUrl,
+                        error: e.nativeEvent.error
+                      });
+                    }}
+                  />
+                  {item.imagens.length > 1 && (
+                    <View style={styles.imageCounter}>
+                      <Text style={styles.imageCounterText}>
+                        {`${index + 1}/${item.imagens.length}`}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              );
+            }}
           />
         </View>
       ) : (
         <View style={styles.propertyImagesPlaceholder}>
           <Icon name="home" size={40} color="#3498db" />
+          <Text style={{ marginTop: 10, color: '#666' }}>Sem imagens disponíveis</Text>
         </View>
       )}
 

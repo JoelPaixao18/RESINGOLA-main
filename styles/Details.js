@@ -1,4 +1,5 @@
 import { StyleSheet, Dimensions } from 'react-native';
+import { RFPercentage, RFValue } from 'react-native-responsive-fontsize';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -71,21 +72,23 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
   section: {
-    paddingHorizontal: 20,
-    marginBottom: 25,
+    marginTop: RFValue(24),
+    paddingHorizontal: RFValue(16),
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: RFValue(18),
     fontWeight: '600',
     color: '#333',
-    marginBottom: 15,
+    marginBottom: RFValue(8),
   },
   featuresGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginTop: RFValue(8),
   },
   featureColumn: {
-    width: '48%',
+    flex: 1,
+    gap: RFValue(12),
   },
   featureItem: {
     flexDirection: 'row',
@@ -104,11 +107,26 @@ const styles = StyleSheet.create({
   amenitiesContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    gap: RFValue(12),
+    marginTop: RFValue(8),
+  },
+  amenityItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    paddingHorizontal: RFValue(12),
+    paddingVertical: RFValue(8),
+    borderRadius: RFValue(8),
+    gap: RFValue(8),
+  },
+  amenityText: {
+    fontSize: RFValue(14),
+    color: '#333',
   },
   descriptionText: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: '#555',
+    fontSize: RFValue(14),
+    color: '#666',
+    lineHeight: RFValue(20),
   },
   ownerContainer: {
     flexDirection: 'row',
@@ -182,11 +200,27 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   
+  statusContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: RFValue(16),
+    marginBottom: RFValue(8),
+  },
+  
   statusText: {
-    fontSize: 14,
+    fontSize: RFValue(14),
+    color: '#1A7526',
+    fontWeight: '600',
+    backgroundColor: '#E8F5E9',
+    paddingHorizontal: RFValue(12),
+    paddingVertical: RFValue(4),
+    borderRadius: RFValue(16),
+  },
+  
+  typeText: {
+    fontSize: RFValue(14),
     color: '#666',
-    marginLeft: 10,
-    fontStyle: 'italic',
   },
   booleanFeature: {
     flexDirection: 'row',
@@ -198,11 +232,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#555',
     marginLeft: 5,
-  },
-  amenitiesContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 5,
   },
 });
 
