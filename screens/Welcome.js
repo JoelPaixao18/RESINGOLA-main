@@ -21,7 +21,7 @@ export default function Welcome() {
                     backgroundColor: themeColors.verde, 
                     padding: 6, 
                     borderRadius: 8, 
-                    marginVertical: 2,
+                    marginVertical: -15,
                     width: '80%', 
                     alignSelf: 'center' }}>
                 <Text 
@@ -29,15 +29,15 @@ export default function Welcome() {
                     Sign up
                 </Text>
             </TouchableOpacity>
-            <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 6,}}>
+            <View style={{ flexDirection: 'row', justifyContent: 'center', marginVertical: 30,}}>
                 <Text 
-                    style={{ color: themeColors.text, fontSize: 15, marginVertical: 20, }}>
+                    style={{ color: themeColors.text, fontSize: 15, marginVertical: 30, }}>
                         Já tem uma conta? 
                 </Text>
                 <TouchableOpacity onPress={() => navigation.navigate('Login')}
-                    style={{ marginLeft: 1,marginVertical: 20 }}>
+                    style={{ marginLeft: 1,marginVertical: 30}}>
                     <Text 
-                        style={{ color: themeColors.verde, fontSize: 15 }}>
+                        style={{ color: themeColors.verde, fontSize: 15}}>
                             Login
                     </Text>
                 </TouchableOpacity>

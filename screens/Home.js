@@ -118,7 +118,7 @@ const Home = ({ route }) => {
         hasWater: res.hasWater || false,
         hasElectricity: res.hasElectricity || false,
         createdAt: res.createdAt || new Date().toISOString(),
-        usuario_id: res.usuario_id || null
+        user_id: res.user_id || res.usuario_id || null // Padroniza para user_id
       });
 
       const formattedLocal = localResidences.map(formatResidence);
@@ -155,11 +155,10 @@ const Home = ({ route }) => {
   }, []);
 
   const handleDetails = (residence) => {
-    // Garante que todos os possíveis IDs estejam disponíveis
+    // Passa o objeto residence com user_id correto
     const residenceWithIds = {
       ...residence,
-      user_id: residence.user_id || residence.id,
-      id: residence.id || residence.user_id
+      user_id: residence.user_id || residence.usuario_id || null // Prioriza user_id, com fallback para usuario_id
     };
     
     navigation.navigate('Details', { residence: residenceWithIds });
@@ -467,8 +466,8 @@ const Home = ({ route }) => {
                       />
                     </Pressable>
 
-                    {route.params?.userData?.id && residence.usuario_id && 
-                    route.params.userData.id.toString() === residence.usuario_id.toString() && (
+                    {route.params?.userData?.id && residence.user_id && 
+                    route.params.userData.id.toString() === residence.user_id.toString() && (
                       <Pressable 
                         style={styles.actionButton}
                         onPress={() => handleDeleteCard(residence.id)}

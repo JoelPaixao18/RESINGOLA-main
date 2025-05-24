@@ -25,6 +25,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    marginTop: 15,
   },
   scrollView: {
     flex: 1,
@@ -39,9 +40,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
     borderRadius: RFValue(12),
-    paddingHorizontal: RFValue(15),
-    paddingVertical: RFValue(10),
-    marginHorizontal: RFPercentage(2),
+    paddingHorizontal: RFValue(20),
+    paddingVertical: RFValue(4),
+    marginHorizontal: RFPercentage(1),
     marginBottom: RFPercentage(2),
     shadowColor: '#000',
     shadowOffset: {

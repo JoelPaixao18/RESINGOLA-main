@@ -15,6 +15,9 @@ try {
     $stmt = $conn->query($sql);
     $residencias = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // Log para depuração
+    error_log('Dados brutos de residencia: ' . json_encode($residencias, JSON_PRETTY_PRINT));
+
     // URL base para as imagens
     $baseImageUrl = "http://192.168.20.217/RESINGOLA-main/Backend/uploads/uploads";
     
@@ -48,3 +51,4 @@ try {
         'message' => 'Erro ao buscar residências: ' . $err->getMessage()
     ]);
 }
+?>

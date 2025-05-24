@@ -1,4 +1,4 @@
-import { Bookmark, CaretLeft, MapPin, PhoneCall, Drop, Lightning, House, Ruler, Car, Stairs, Tree, Images, Coffee, Armchair, DoorOpen } from 'phosphor-react-native';
+import { Bookmark, CaretLeft, MapPin, PhoneCall, Drop, Lightning, House, Ruler, Car, Stairs, Tree, Images } from 'phosphor-react-native';
 import React, { useEffect, useState } from 'react';
 import { Image, Text, View, ScrollView, TouchableOpacity, Linking, ActivityIndicator, Dimensions, FlatList } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -43,7 +43,10 @@ function Details() {
   useEffect(() => {
     const fetchOwnerData = async () => {
       try {
-        // Usa explicitamente user_id, já que foi confirmado como o campo correto
+        // Log para depurar o objeto residence
+        console.log('Objeto residence recebido:', JSON.stringify(residence, null, 2));
+
+        // Usa explicitamente user_id do objeto residence
         const ownerId = residence?.user_id;
 
         if (!ownerId) {
@@ -191,13 +194,7 @@ function Details() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {/* Status e Tipo */}
-        <View style={styles.statusContainer}>
-          <Text style={styles.statusText}>{residence.status}</Text>
-          <Text style={styles.typeText}>{residence.typeResi}</Text>
-        </View>
-
-        <Text style={styles.infoNameText}>{residence.typology}</Text>
+        <Text style={styles.infoNameText}>{residence.typology || residence.typeResi}</Text>
         
         <View style={styles.priceContainer}>
           <Text style={styles.priceText}>{residence.price}</Text>
@@ -216,13 +213,12 @@ function Details() {
           <View style={styles.featuresGrid}>
             <View style={styles.featureColumn}>
               {renderFeature(<House size={20} color="#1A7526" />, 'Tipo', residence.typeResi)}
-              {renderFeature(<Ruler size={20} color="#1A7526" />, 'Área', `${residence.houseSize} m²`)}
+              {renderFeature(<Ruler size={20} color="#1A7526" />, 'Área', residence.houseSize)}
               {renderFeature(<Stairs size={20} color="#1A7526" />, 'Andares', residence.andares || '1')}
             </View>
             <View style={styles.featureColumn}>
-              {renderFeature(<Armchair size={20} color="#1A7526" />, 'Salas', residence.livingRoomCount || '0')}
-              {renderFeature(<Coffee size={20} color="#1A7526" />, 'Cozinhas', residence.kitchenCount || '0')}
-              {renderFeature(<Drop size={20} color="#1A7526" />, 'Banheiros', residence.bathroomCount || '0')}
+              {renderFeature(<Drop size={20} color="#1A7526" />, 'Banheiros', residence.bathroomCount)}
+              {renderFeature(<Car size={20} color="#1A7526" />, 'Garagens', residence.garagem || '0')}
             </View>
           </View>
         </View>
@@ -231,36 +227,10 @@ function Details() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Comodidades</Text>
           <View style={styles.amenitiesContainer}>
-            {residence.hasWater && (
-              <View style={styles.amenityItem}>
-                <Drop size={20} color="#1A7526" />
-                <Text style={styles.amenityText}>Água</Text>
-              </View>
-            )}
-            {residence.hasElectricity && (
-              <View style={styles.amenityItem}>
-                <Lightning size={20} color="#1A7526" />
-                <Text style={styles.amenityText}>Energia</Text>
-              </View>
-            )}
-            {residence.garagem && (
-              <View style={styles.amenityItem}>
-                <Car size={20} color="#1A7526" />
-                <Text style={styles.amenityText}>Garagem</Text>
-              </View>
-            )}
-            {residence.quintal && (
-              <View style={styles.amenityItem}>
-                <Tree size={20} color="#1A7526" />
-                <Text style={styles.amenityText}>Quintal</Text>
-              </View>
-            )}
-            {residence.varanda && (
-              <View style={styles.amenityItem}>
-                <DoorOpen size={20} color="#1A7526" />
-                <Text style={styles.amenityText}>Varanda</Text>
-              </View>
-            )}
+            {residence.hasWater && renderFeature(<Drop size={20} color="#1A7526" />, 'Água', 'Disponível')}
+            {residence.hasElectricity && renderFeature(<Lightning size={20} color="#1A7526" />, 'Energia', 'Disponível')}
+            {residence.quintal && renderFeature(<Tree size={20} color="#1A7526" />, 'Quintal', 'Sim')}
+            {residence.varanda && renderFeature(<House size={20} color="#1A7526" />, 'Varanda', 'Sim')}
           </View>
         </View>
 

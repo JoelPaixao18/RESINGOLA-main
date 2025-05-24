@@ -51,7 +51,7 @@ try {
     }
 
     // Agora continua com a query principal
-    $query = "SELECT id, typeResi, price, location, houseSize, images, description, bathroomCount, typology
+    $query = "SELECT id, typeResi, price, location, houseSize, images, description, bathroomCount, typology, user_id
               FROM residencia 
               WHERE user_id = :user_id";
 
@@ -98,7 +98,8 @@ try {
             'localizacao' => $property['location'] ?? 'Localização não informada',
             'area' => $property['houseSize'] ?? 0,
             'descricao' => $property['description'] ?? 'Nenhuma descricão fornecida',
-            'imagens' => $images // Array com apenas os nomes dos arquivos
+            'imagens' => $images, // Array com apenas os nomes dos arquivos
+            'user_id' => $property['user_id']
         ];
     }
 

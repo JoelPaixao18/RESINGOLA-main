@@ -11,6 +11,7 @@ export const welcomeStyles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-around',
     marginVertical: RFPercentage(2),
+    marginTop: RFPercentage(-15),
   },
   title: {
     color: '#0A1F44',
