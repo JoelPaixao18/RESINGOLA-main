@@ -7,8 +7,8 @@ header("Access-Control-Allow-Headers: Content-Type");
 require_once __DIR__ . '/../Backend/db.php';
 
 // Configurações para upload de imagens
-$uploadDir = __DIR__ . '/../Backend/uploads/uploads';
-$allowedTypes = ['image/jpeg','image/jpg', 'image/png', 'image/gif'];
+$uploadDir = __DIR__ . '/../Backend/uploads/';
+$allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
 $maxFileSize = 5 * 1024 * 1024; // 5MB
 
 // Criar diretório se não existir
@@ -56,6 +56,7 @@ try {
 
         $imagePaths[] = $filename;
     }
+
     if (isset($_POST['description']) && strlen($_POST['description']) > 500) {
         throw new Exception('A descrição não pode exceder 500 caracteres');
     }
@@ -81,7 +82,8 @@ try {
         'longitude' => $_POST['longitude'],
         'price' => $_POST['price'],
         'description' => $_POST['description'] ?? '',
-        'user_id' => $_POST['user_id']
+        'user_id' => $_POST['user_id'],
+        'approval_status' => 'pendente' // Novo campo
     ];
 
     // Inserir no banco de dados
@@ -89,21 +91,42 @@ try {
         images, houseSize, status, typeResi, typology,
         livingRoomCount, kitchenCount, hasWater, hasElectricity,
         bathroomCount, quintal, andares, garagem, varanda,
-        location, latitude, longitude, price, description, user_id
+        location, latitude, longitude, price, description, user_id, approval_status
     ) VALUES (
         :images, :houseSize, :status, :typeResi, :typology,
         :livingRoomCount, :kitchenCount, :hasWater, :hasElectricity,
         :bathroomCount, :quintal, :andares, :garagem, :varanda,
-        :location, :latitude, :longitude, :price, :description, :user_id
+        :location, :latitude, :longitude, :price, :description, :user_id, :approval_status
     )";
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute($data);
+    $propertyId = $pdo->lastInsertId();
+
+    // Criar notificação para o admin
+    $adminNotificationSql = "INSERT INTO admin_notifications (
+        type, message, property_id, created_at, read_status
+    ) VALUES (
+        'new_property',
+        :message,
+        :property_id,
+        NOW(),
+        0
+    )";
+
+    $notificationMessage = "Novo imóvel cadastrado: " . $data['typeResi'] . " em " . $data['location'] . 
+                          " (" . ($data['status'] === 'Venda' ? 'Venda' : 'Arrendamento') . ")";
+
+    $notificationStmt = $pdo->prepare($adminNotificationSql);
+    $notificationStmt->execute([
+        'message' => $notificationMessage,
+        'property_id' => $propertyId
+    ]);
 
     echo json_encode([
         'status' => 'success',
-        'message' => 'Imóvel cadastrado com sucesso',
-        'id' => $pdo->lastInsertId()
+        'message' => 'Imóvel cadastrado com sucesso e está aguardando aprovação',
+        'id' => $propertyId
     ]);
 
 } catch (Exception $e) {
@@ -113,3 +136,4 @@ try {
         'message' => 'Erro no cadastro: ' . $e->getMessage()
     ]);
 }
+?>

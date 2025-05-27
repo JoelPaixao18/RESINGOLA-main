@@ -1,4 +1,4 @@
-import { StatusBar, StyleSheet } from 'react-native';
+import { StatusBar, StyleSheet, Dimensions } from 'react-native';
 
 const styles = StyleSheet.create({
   safe: {
@@ -126,21 +126,59 @@ propertyImage: {
 },
 imageCarousel: {
     width: '100%',
-    height: 200,
+    height: 220,
     backgroundColor: '#f5f5f5',
+    overflow: 'hidden',
+},
+carouselImageContainer: {
+    width: Dimensions.get('window').width,
+    height: 220,
+    position: 'relative',
+},
+carouselImage: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#e1e1e1',
+},
+carouselButton: {
+    position: 'absolute',
+    top: '50%',
+    transform: [{ translateY: -25 }],
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#1A7526',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 2,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+},
+carouselButtonLeft: {
+    left: 15,
+},
+carouselButtonRight: {
+    right: 45,
+    color:'#1A7526',
+    
 },
 imageCounter: {
     position: 'absolute',
-    bottom: 10,
-    right: 10,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderRadius: 10,
+    bottom: 15,
+    right: 45,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 15,
+    zIndex: 2,
 },
 imageCounterText: {
     color: '#fff',
-    fontSize: 12,
+    fontSize: 14,
+    fontWeight: '600',
 },
 propertyDetails: {
     padding: 15,
@@ -280,6 +318,47 @@ propertyImagesPlaceholder: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+
+  notificationList: {
+    paddingBottom: 20,
+  },
+  notificationItem: {
+    flexDirection: 'row',
+    padding: 15,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    marginHorizontal: 10,
+    marginVertical: 5,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  unreadNotification: {
+    backgroundColor: '#f0fff0',
+  },
+  notificationContent: {
+    flex: 1,
+    marginLeft: 10,
+  },
+  notificationText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  notificationDate: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 5,
+  },
+  unreadIndicator: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#1A7526',
+    marginLeft: 10,
   },
 });
 

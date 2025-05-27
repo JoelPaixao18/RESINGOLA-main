@@ -252,10 +252,8 @@ const handleSubmit = async () => {
   }
 
   try {
-    // Preparar FormData para envio
     const formData = new FormData();
     
-    // Adicionar imagens ao FormData
     images.forEach((uri, index) => {
       const filename = uri.split('/').pop();
       const match = /\.(\w+)$/.exec(filename);
@@ -268,7 +266,6 @@ const handleSubmit = async () => {
       });
     });
 
-    // Adicionar outros campos
     formData.append('houseSize', houseSize);
     formData.append('status', status);
     formData.append('typeResi', typeResi);
@@ -291,7 +288,7 @@ const handleSubmit = async () => {
 
     console.log('Enviando dados...');
     
-    const response = await fetch('http://192.168.20.217/RESINGOLA-main/Backend/conect.php', {
+    const response = await fetch('http://192.168.32.25/RESINGOLA-main/Backend/conect.php', {
       method: 'POST',
       body: formData,
       headers: {
@@ -308,7 +305,7 @@ const handleSubmit = async () => {
 
     Alert.alert(
       'Cadastro Concluído', 
-      'Imóvel registrado com sucesso!',
+      'Imóvel registrado com sucesso! Ele será exibido após aprovação do administrador.',
       [{ text: 'OK', onPress: () => navigation.navigate('Home') }]
     );
     

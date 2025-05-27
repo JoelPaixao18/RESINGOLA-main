@@ -2,24 +2,18 @@
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json");
 
-$host = "localhost";
-$user = "root";
-$pass = "";
-$dbname = "resingola";
+require_once __DIR__ . '/db.php';
 
 try {
-    $conn = new PDO("mysql:host=$host;dbname=$dbname", $user, $pass);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-    $sql = "SELECT * FROM residencia ORDER BY id DESC";
-    $stmt = $conn->query($sql);
+    $sql = "SELECT * FROM residencia WHERE approval_status = 'aprovado' ORDER BY id DESC";
+    $stmt = $pdo->query($sql);
     $residencias = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Log para depuração
     error_log('Dados brutos de residencia: ' . json_encode($residencias, JSON_PRETTY_PRINT));
 
     // URL base para as imagens
-    $baseImageUrl = "http://192.168.20.217/RESINGOLA-main/Backend/uploads/uploads";
+    $baseImageUrl = "http://192.168.32.25/RESINGOLA-main/Backend/uploads/";
     
     foreach ($residencias as &$res) {
         // Decodificar o JSON de imagens
@@ -43,12 +37,17 @@ try {
     
     echo json_encode([
         'status' => 'success',
+        'message' => 'Imóveis aprovados carregados com sucesso',
+        'total' => count($residencias),
         'data' => $residencias
     ]);
 } catch (PDOException $err) {
+    error_log("Erro ao buscar residências: " . $err->getMessage());
     echo json_encode([
         'status' => 'error',
-        'message' => 'Erro ao buscar residências: ' . $err->getMessage()
+        'message' => 'Erro ao buscar residências: ' . $err->getMessage(),
+        'total' => 0,
+        'data' => []
     ]);
 }
 ?>

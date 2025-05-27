@@ -4,19 +4,19 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Accept");
 
-include_once '../Backend/db.php';
+require_once __DIR__ . '/db.php';
 
 // Debug do ambiente
 error_log("Document Root: " . $_SERVER['DOCUMENT_ROOT']);
 error_log("Script Path: " . __FILE__);
 
 // URL BASE para servir imagens
-$baseImageUrl = "http://192.168.20.217/RESINGOLA-main/Backend/serve_image.php?image=";
+$baseImageUrl = "http://192.168.32.25/RESINGOLA-main/Backend/uploads/";
 error_log("Base Image URL: " . $baseImageUrl);
 
 // Função para verificar se a imagem existe
 function imageExists($path) {
-    $fullPath = str_replace('http://192.168.20.217/RESINGOLA-main/', $_SERVER['DOCUMENT_ROOT'] . '/RESINGOLA-main/', $path);
+    $fullPath = str_replace('http://192.168.32.25/RESINGOLA-main/', $_SERVER['DOCUMENT_ROOT'] . '/RESINGOLA-main/', $path);
     error_log("Verificando existência da imagem em: " . $fullPath);
     $exists = file_exists($fullPath);
     error_log("Imagem existe? " . ($exists ? "Sim" : "Não"));
@@ -50,10 +50,10 @@ try {
         error_log("ID: " . $raw['id'] . " - Images: " . print_r($raw['images'], true));
     }
 
-    // Agora continua com a query principal
+    // Query principal, incluindo approval_status
     $query = "SELECT id, typeResi, price, location, houseSize, images, description, bathroomCount, typology, user_id
               FROM residencia 
-              WHERE user_id = :user_id";
+              WHERE user_id = :user_id AND approval_status = 'aprovado'";
 
     $stmt = $pdo->prepare($query);
     $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
@@ -68,8 +68,6 @@ try {
     $formattedProperties = [];
     foreach ($properties as $property) {
         error_log("\n--- Processando propriedade ID: " . $property['id'] . " ---");
-        error_log("Tipo: " . $property['typeResi']);
-        error_log("Localização: " . $property['location']);
         
         $images = [];
         if (!empty($property['images'])) {
@@ -78,16 +76,31 @@ try {
             
             if ($decoded === null) {
                 error_log("Erro ao decodificar JSON: " . json_last_error_msg());
+                // Se não for JSON válido, tenta usar como string única
+                if (is_string($property['images'])) {
+                    $images = [$property['images']];
+                }
             } else if (is_array($decoded)) {
                 error_log("Array de imagens decodificado: " . print_r($decoded, true));
                 
-                $images = $decoded; // Mantém apenas os nomes dos arquivos
+                // Processa cada imagem para garantir o formato correto
+                $images = array_map(function($img) use ($baseImageUrl) {
+                    // Remove qualquer barra inicial
+                    $img = ltrim($img, '/');
+                    
+                    // Remove prefixos de diretório desnecessários
+                    $img = preg_replace('/^(Backend\/Uploads\/|Uploads\/)/', '', $img);
+                    
+                    // Se o nome da imagem começa com 'uploads', remove
+                    $img = preg_replace('/^Uploads/', '', $img);
+                    
+                    // Adiciona o baseImageUrl
+                    return $baseImageUrl . $img;
+                }, $decoded);
             }
-        } else {
-            error_log("Campo 'images' está vazio para esta propriedade");
         }
 
-        error_log("Número de imagens encontradas: " . count($images));
+        error_log("Imagens processadas: " . print_r($images, true));
 
         $formattedProperties[] = [
             'id' => $property['id'],
@@ -97,9 +110,10 @@ try {
             'preco' => isset($property['price']) ? 'kz ' . number_format($property['price'], 2, ',', '.') : 'Preço não informado',
             'localizacao' => $property['location'] ?? 'Localização não informada',
             'area' => $property['houseSize'] ?? 0,
-            'descricao' => $property['description'] ?? 'Nenhuma descricão fornecida',
-            'imagens' => $images, // Array com apenas os nomes dos arquivos
-            'user_id' => $property['user_id']
+            'descricao' => $property['description'] ?? 'Nenhuma descrição fornecida',
+            'imagens' => $images,
+            'user_id' => $property['user_id'],
+            'approval_status' => $property['approval_status'] ?? 'pendente'
         ];
     }
 

@@ -17,7 +17,7 @@ function Map() {
 
   const fetchProperties = async () => {
     try {
-      const response = await fetch('http://192.168.20.217/RESINGOLA-main/Backend/listar_residences.php');
+      const response = await fetch('http://192.168.32.25/RESINGOLA-main/Backend/listar_residences.php');
       const result = await response.json();
       
       if (result.status === 'success') {
