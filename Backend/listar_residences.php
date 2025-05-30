@@ -13,7 +13,7 @@ try {
     error_log('Dados brutos de residencia: ' . json_encode($residencias, JSON_PRETTY_PRINT));
 
     // URL base para as imagens
-    $baseImageUrl = "http://192.168.32.25/RESINGOLA-main/Backend/uploads/";
+    $baseImageUrl = "http://192.168.213.25/RESINGOLA-main/Backend/uploads/";
     
     foreach ($residencias as &$res) {
         // Decodificar o JSON de imagens

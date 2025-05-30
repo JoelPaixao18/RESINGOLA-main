@@ -25,7 +25,7 @@ export default function UserProfile() {
   // Referência para o FlatList de imagens usando useRef
   const carouselRefs = useRef({});
 
-  const baseImageUrl = "http://192.168.32.25/RESINGOLA-main/Backend/uploads/";
+  const baseImageUrl = "http://192.168.213.25/RESINGOLA-main/Backend/uploads/";
 
   // Função para processar o caminho da imagem
   const getImageUrl = (imageName) => {
@@ -100,7 +100,7 @@ export default function UserProfile() {
     try {
       setLoadingNotifications(true);
       const response = await fetch(
-        `http://192.168.32.25/RESINGOLA-main/Backend/get_notifications.php?user_id=${userId}`
+        `http://192.168.213.25/RESINGOLA-main/Backend/get_notifications.php?user_id=${userId}`
       );
       const data = await response.json();
 
@@ -126,7 +126,7 @@ export default function UserProfile() {
         throw new Error('ID do usuário não encontrado');
       }
       const response = await fetch(
-        'http://192.168.32.25/RESINGOLA-main/Backend/mark_notification_read.php',
+        'http://192.168.213.25/RESINGOLA-main/Backend/mark_notification_read.php',
         {
           method: 'POST',
           headers: {
@@ -175,7 +175,7 @@ export default function UserProfile() {
 
       // Atualiza os imóveis
       const propertiesResponse = await fetch(
-        `http://192.168.32.25/RESINGOLA-main/Backend/user_properties.php?user_id=${userId}`
+        `http://192.168.213.25/RESINGOLA-main/Backend/user_properties.php?user_id=${userId}`
       );
       const propertiesData = await propertiesResponse.json();
       
@@ -207,7 +207,7 @@ export default function UserProfile() {
       }
 
       // Busca os dados do usuário
-      const userResponse = await fetch(`http://192.168.32.25/RESINGOLA-main/Backend/perfil.php?id=${userId}`);
+      const userResponse = await fetch(`http://192.168.213.25/RESINGOLA-main/Backend/perfil.php?id=${userId}`);
       const userData = await userResponse.json();
 
       if (userData.status === 'success') {
@@ -217,7 +217,7 @@ export default function UserProfile() {
       }
 
       // Busca os imóveis do usuário
-      const propertiesResponse = await fetch(`http://192.168.32.25/RESINGOLA-main/Backend/user_properties.php?user_id=${userId}`);
+      const propertiesResponse = await fetch(`http://192.168.213.25/RESINGOLA-main/Backend/user_properties.php?user_id=${userId}`);
       const propertiesData = await propertiesResponse.json();
 
       if (propertiesData.status === 'success') {
@@ -325,7 +325,7 @@ export default function UserProfile() {
 
   const handleDeleteProperty = async (propertyId) => {
     try {
-      const response = await fetch(`http://192.168.32.25/RESINGOLA-main/Backend/deletar.php`, {
+      const response = await fetch(`http://192.168.213.25/RESINGOLA-main/Backend/deletar.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

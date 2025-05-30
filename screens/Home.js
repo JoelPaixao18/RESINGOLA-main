@@ -10,7 +10,7 @@ import styles from '../styles/Home';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
-const baseImageUrl = "http://192.168.32.25/RESINGOLA-main/uploads/";
+const baseImageUrl = "http://192.168.213.25/RESINGOLA-main/uploads/";
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -80,6 +80,7 @@ const Home = ({ route }) => {
 
   const fetchResidences = async () => {
     try {
+
       let localResidences = [];
       let serverResidences = [];
 
@@ -93,7 +94,7 @@ const Home = ({ route }) => {
 
       // 2. Buscar do servidor
       try {
-        const response = await fetch('http://192.168.32.25/RESINGOLA-main/Backend/listar_residences.php');
+        const response = await fetch('http://192.168.213.25/RESINGOLA-main/Backend/listar_residences.php');
         const result = await response.json();
         if (result.status === 'success') {
           serverResidences = result.data || [];
@@ -103,6 +104,8 @@ const Home = ({ route }) => {
       }
 
       // 3. Formatar os dados
+      
+
       const formatResidence = (res) => ({
         id: res.id || Date.now().toString(),
         image: res.imagem ? `${baseImageUrl}${res.imagem}` : res.image || res.images?.[0] || 'https://via.placeholder.com/150',
@@ -117,6 +120,11 @@ const Home = ({ route }) => {
         kitchenCount: res.kitchenCount || 0,
         hasWater: res.hasWater || false,
         hasElectricity: res.hasElectricity || false,
+	      garagem: res.garagem || 0,
+        quintal: res.quintal || false,
+        varanda: res.varanda || false,
+        andares: res.andares || 1,
+        description: res.description || 'Sem nenhuma descrição',
         createdAt: res.createdAt || new Date().toISOString(),
         user_id: res.user_id || res.usuario_id || null // Padroniza para user_id
       });
@@ -216,7 +224,7 @@ const Home = ({ route }) => {
           text: 'Sim', 
           onPress: async () => {
             try {
-              const response = await fetch('http://192.168.32.25/RESINGOLA-main/Backend/deletar.php', {
+              const response = await fetch('http://192.168.213.25/RESINGOLA-main/Backend/deletar.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id: cardId })

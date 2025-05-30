@@ -217,7 +217,7 @@ function Details() {
               {renderFeature(<Stairs size={20} color="#1A7526" />, 'Andares', residence.andares || '1')}
             </View>
             <View style={styles.featureColumn}>
-              {renderFeature(<Drop size={20} color="#1A7526" />, 'Banheiros', residence.bathroomCount)}
+              {renderFeature(<Drop size={20} color="#1A7526" />, 'Banheiros', residence.bathroomCount || '1')}
               {renderFeature(<Car size={20} color="#1A7526" />, 'Garagens', residence.garagem || '0')}
             </View>
           </View>

@@ -3,7 +3,7 @@
 
 const ENV = {
   DEVELOPMENT: {
-    API_BASE_URL: 'http://192.168.32.25/RESINGOLA-main/Backend',
+    API_BASE_URL: 'http://192.168.213.25/RESINGOLA-main/Backend',
     DEBUG_MODE: true
   },
   PRODUCTION: {

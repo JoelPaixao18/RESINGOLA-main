@@ -288,7 +288,7 @@ const handleSubmit = async () => {
 
     console.log('Enviando dados...');
     
-    const response = await fetch('http://192.168.32.25/RESINGOLA-main/Backend/conect.php', {
+    const response = await fetch('http://192.168.213.25/RESINGOLA-main/Backend/conect.php', {
       method: 'POST',
       body: formData,
       headers: {

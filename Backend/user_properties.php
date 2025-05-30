@@ -11,12 +11,12 @@ error_log("Document Root: " . $_SERVER['DOCUMENT_ROOT']);
 error_log("Script Path: " . __FILE__);
 
 // URL BASE para servir imagens
-$baseImageUrl = "http://192.168.32.25/RESINGOLA-main/Backend/uploads/";
+$baseImageUrl = "http://192.168.213.25/RESINGOLA-main/Backend/uploads/";
 error_log("Base Image URL: " . $baseImageUrl);
 
 // Função para verificar se a imagem existe
 function imageExists($path) {
-    $fullPath = str_replace('http://192.168.32.25/RESINGOLA-main/', $_SERVER['DOCUMENT_ROOT'] . '/RESINGOLA-main/', $path);
+    $fullPath = str_replace('http://192.168.213.25/RESINGOLA-main/', $_SERVER['DOCUMENT_ROOT'] . '/RESINGOLA-main/', $path);
     error_log("Verificando existência da imagem em: " . $fullPath);
     $exists = file_exists($fullPath);
     error_log("Imagem existe? " . ($exists ? "Sim" : "Não"));

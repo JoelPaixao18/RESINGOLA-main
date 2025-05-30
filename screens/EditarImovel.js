@@ -26,7 +26,7 @@ const EditarImovel = ({ route, navigation }) => {
   const { property, onPropertyUpdated } = route.params;
   
   const [images, setImages] = useState([]);
-  const baseImageUrl = "http://192.168.32.25/RESINGOLA-main/Backend/uploads/";
+  const baseImageUrl = "http://192.168.213.25/RESINGOLA-main/Backend/uploads/";
   const [failedImages, setFailedImages] = useState(new Set());
   const [formData, setFormData] = useState({
     tipo: property.tipo || '',
@@ -94,7 +94,7 @@ useEffect(() => {
         
         const imageUrls = processedImages.map(img => {
             const cleanPath = img.replace(/^\/?uploads\//, '');
-            return `http://192.168.32.25/RESINGOLA-main/Backend/Uploads/${cleanPath}?t=${Date.now()}`;
+            return `http://192.168.213.25/RESINGOLA-main/Backend/Uploads/${cleanPath}?t=${Date.now()}`;
         });
         
         console.log('URLs das imagens:', imageUrls);
@@ -380,7 +380,7 @@ const handleUpdate = async () => {
             console.log(key, typeof value === 'object' ? { uri: value.uri, name: value.name, type: value.type } : value);
         }
 
-        const response = await fetch('http://192.168.32.25/RESINGOLA-main/Backend/editar_imovel.php', {
+        const response = await fetch('http://192.168.213.25/RESINGOLA-main/Backend/editar_imovel.php', {
             method: 'POST',
             body: updateData,
             headers: {
@@ -408,7 +408,7 @@ const handleUpdate = async () => {
                 ? result.property.images.split(',').map(img => img.trim()).filter(img => img)
                 : [];
             const imageUrls = processedImages.map(img =>
-                img.startsWith('http') ? img : `http://192.168.32.25/RESINGOLA-main/Backend/Uploads/${img.replace(/^\/?Uploads\//, '')}?t=${Date.now()}`
+                img.startsWith('http') ? img : `http://192.168.213.25/RESINGOLA-main/Backend/Uploads/${img.replace(/^\/?Uploads\//, '')}?t=${Date.now()}`
             );
 
             console.log('URLs finais das imagens:', imageUrls);

@@ -26,7 +26,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const response = await fetch('http://192.168.32.25/RESINGOLA-main/Backend/login.php', {
+      const response = await fetch('http://192.168.213.25/RESINGOLA-main/Backend/login.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

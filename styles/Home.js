@@ -147,8 +147,8 @@ const styles = StyleSheet.create({
     borderTopColor: '#eee',
   },
   propertyTypeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "column",
+    alignItems: 'right',
     marginBottom: RFValue(8),
   },
   propertyTypeText: {
@@ -157,6 +157,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginRight: RFValue(8),
   },
+
   propertyFeatures: {
     flexDirection: 'row',
     flexWrap: 'wrap',
